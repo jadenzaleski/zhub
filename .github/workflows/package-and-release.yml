@@ -1,0 +1,53 @@
+name: Update VERSION file and package release
+
+on:
+  push:
+    tags:
+      - "v*"  # Trigger only on tags starting with 'v'
+      
+  workflow_dispatch:
+
+jobs:
+  update_version_and_package:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Extract the version from the tag
+      - name: Extract version from tag
+        id: extract_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      # Step 3: Update the VERSION file
+      - name: Update VERSION file
+        run: |
+          echo "$VERSION" > VERSION
+          cat VERSION
+
+      # Step 4: Commit the updated VERSION file
+      - name: Commit changes
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add VERSION
+          git commit -m "Update VERSION file to $VERSION"
+          git push origin HEAD
+
+      # Step 5: Create a tar.gz package
+      - name: Package the repository
+        run: |
+          mkdir -p build
+          tar -czvf build/release-${VERSION}.tar.gz . --exclude=".git"
+
+      # Step 6: Upload the tar.gz as a release asset
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/release-${VERSION}.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

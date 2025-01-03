@@ -6,7 +6,8 @@
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
-
-# My ignored files
+# idea files
 /.idea/
 *.iml
+# MAC file
+.DS_Store

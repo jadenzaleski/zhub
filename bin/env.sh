@@ -11,10 +11,10 @@
 
 # Redefine printf to include the prefix with filename and date
 log() {
-  filename="$(basename "$0")"
-  datetime=$(date "+%H:%M:%S")
-  milliseconds=$(date "+%N" | head -c 3)
-  datetime="$datetime.$milliseconds"
+  local filename="$(basename "$0")"
+  local datetime=$(date "+%H:%M:%S")
+  local milliseconds=$(date "+%N" | head -c 3)
+  local datetime="$datetime.$milliseconds"
   prefix="$filename | $datetime |"
 
   printf "$prefix %b\n" "$*"
@@ -68,6 +68,43 @@ ON_CYAN='\033[46m'        # Cyan
 ON_WHITE='\033[47m'       # White
 export ON_BLACK ON_RED ON_GREEN ON_YELLOW ON_BLUE ON_PURPLE ON_CYAN ON_WHITE
 # Color test
-log "$ON_RED  $ON_GREEN  $ON_YELLOW  $ON_BLUE  $ON_PURPLE  $ON_CYAN  $ON_WHITE  $ON_BLACK  $COLOR_OFF"
+#log "$ON_RED  $ON_GREEN  $ON_YELLOW  $ON_BLUE  $ON_PURPLE  $ON_CYAN  $ON_WHITE  $ON_BLACK  $COLOR_OFF"
 # --- END OF COLORS ---
+# Function to run the spinner
+spinner() {
+#  local states=("⣾" "⣽" "⣻" "⢿" "⡿" "⣟" "⣯" "⣷")
+#  local states=("▁" "▂" "▃" "▄" "▅" "▆" "▇" "█" "▇" "▆" "▅" "▄" "▃" "▂" "▁")
+#  local states=("▉" "▊" "▋" "▌" "▍" "▎" "▏" "▎" "▍" "▌" "▋" "▊" "▉")
+  local states=("" "" "" "" "" "" "" "" "" "" "" "" "" "" ""
+                "" "" "" "" "" "" "" "" "" "" "" "" ""
+                "" "" "" "" "" "" "" "" "" "" "" "" ""
+                "" "" "" "" "" "" "" "" "" "" "" "" "" "" "")
+  while true; do
+    for state in "${states[@]}"; do
+      read -r status_text < <(printf "%s \n" "$(< "$STATUS_TEXT_FILE")")
+      printf "$CYAN\r$state$COLOR_OFF %s" "$status_text"
+      sleep 0.05
+    done
+  done
+}
 
+update_spinner() {
+  printf "%s\n" "$1" > "$STATUS_TEXT_FILE"
+}
+
+start_spinner() {
+  # Create a temporary file to store the status text
+  STATUS_TEXT_FILE=$(mktemp)
+  printf "" > "$STATUS_TEXT_FILE"
+  spinner &
+  SPINNER_PID=$!
+}
+
+stop_spinner() {
+  kill "$SPINNER_PID" 2>/dev/null
+  wait "$SPINNER_PID" 2>/dev/null
+  rm -f "$STATUS_TEXT_FILE"
+}
+
+
+export -f spinner start_spinner stop_spinner update_spinner

@@ -8,19 +8,6 @@
 # A file that will write all globals to the current scope.
 #
 
-
-# Redefine printf to include the prefix with filename and date
-log() {
-  local filename="$(basename "$0")"
-  local datetime=$(date "+%H:%M:%S")
-  local milliseconds=$(date "+%N" | head -c 3)
-  local datetime="$datetime.$milliseconds"
-  prefix="$filename | $datetime |"
-
-  printf "$prefix %b\n" "$*"
-}
-export -f log
-
 ROOT_DIR="$(cd .. && pwd)"
 export ROOT_DIR
 #log "ROOT_DIR: $ROOT_DIR"
@@ -70,6 +57,17 @@ export ON_BLACK ON_RED ON_GREEN ON_YELLOW ON_BLUE ON_PURPLE ON_CYAN ON_WHITE
 # Color test
 #log "$ON_RED  $ON_GREEN  $ON_YELLOW  $ON_BLUE  $ON_PURPLE  $ON_CYAN  $ON_WHITE  $ON_BLACK  $COLOR_OFF"
 # --- END OF COLORS ---
+
+# Redefine printf to include the prefix with filename and date
+log() {
+  local filename="$(basename "$0")"
+  local datetime=$(date "+%H:%M:%S")
+  prefix="$filename | $datetime |"
+
+  printf "$prefix %b\n" "$*"
+}
+export -f log
+
 # Function to run the spinner
 spinner() {
 #  local states=("⣾" "⣽" "⣻" "⢿" "⡿" "⣟" "⣯" "⣷")
@@ -79,16 +77,29 @@ spinner() {
                 "" "" "" "" "" "" "" "" "" "" "" "" ""
                 "" "" "" "" "" "" "" "" "" "" "" "" ""
                 "" "" "" "" "" "" "" "" "" "" "" "" "" "" "")
+  # Trap SIGINT (Ctrl+C) to handle proper cleanup
+  trap 'stop_spinner' SIGINT
+
   while true; do
+    # Instead of process substitution, just use a simple `cat` to read the file
+    status_text=$(cat "$STATUS_TEXT_FILE")
     for state in "${states[@]}"; do
-      read -r status_text < <(printf "%s \n" "$(< "$STATUS_TEXT_FILE")")
-      printf "$CYAN\r$state$COLOR_OFF %s" "$status_text"
+      # Clear both lines: the spinner line and the blank line
+      printf "\033[2K"
+      printf "\r$CYAN$state$COLOR_OFF %s\n" "$status_text"
+      # Print a blank line on the second line
+      printf "\033[2K\033[A"
       sleep 0.05
     done
   done
 }
 
 update_spinner() {
+  if [[ ! -f "$STATUS_TEXT_FILE" ]]; then
+    log "Warning: Update spinner called but spinner not started."
+    return 1
+  fi
+
   printf "%s\n" "$1" > "$STATUS_TEXT_FILE"
 }
 
@@ -98,12 +109,14 @@ start_spinner() {
   printf "" > "$STATUS_TEXT_FILE"
   spinner &
   SPINNER_PID=$!
+  printf "\033[?25l" # Hide the cursor
 }
 
 stop_spinner() {
   kill "$SPINNER_PID" 2>/dev/null
   wait "$SPINNER_PID" 2>/dev/null
   rm -f "$STATUS_TEXT_FILE"
+  printf "\033[?25h" # Show the cursor
 }
 
 

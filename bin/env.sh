@@ -10,15 +10,16 @@
 
 ROOT_DIR="$(cd .. && pwd)"
 export ROOT_DIR
-#log "ROOT_DIR: $ROOT_DIR"
 
 BIN_DIR="$(cd ../bin && pwd)"
 export BIN_DIR
-#log "BIN_DIR: $BIN_DIR"
+
+export PATH=$PATH:$BIN_DIR
 
 VERSION="$(cat "$ROOT_DIR"/VERSION)"
 export VERSION
-#log "VERSION: $VERSION"
+
+OS=$(uname -s)
 
 # --- COLORS ---
 # Reset
@@ -77,8 +78,6 @@ spinner() {
                 "" "" "" "" "" "" "" "" "" "" "" "" ""
                 "" "" "" "" "" "" "" "" "" "" "" "" ""
                 "" "" "" "" "" "" "" "" "" "" "" "" "" "" "")
-  # Trap SIGINT (Ctrl+C) to handle proper cleanup
-  trap 'stop_spinner' SIGINT
 
   while true; do
     # Instead of process substitution, just use a simple `cat` to read the file
@@ -113,10 +112,12 @@ start_spinner() {
 }
 
 stop_spinner() {
+  printf "\033[2K%s" "$1"
   kill "$SPINNER_PID" 2>/dev/null
   wait "$SPINNER_PID" 2>/dev/null
   rm -f "$STATUS_TEXT_FILE"
   printf "\033[?25h" # Show the cursor
+  echo
 }
 
 

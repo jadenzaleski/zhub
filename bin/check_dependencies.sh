@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # File: check_dependencies.sh
 # Created: 1/5/2025
@@ -15,7 +16,7 @@
 source ./env.sh
 
 # List of commands to check
-commands=("wget" "npm" "git" "tar" "gzipd")
+commands=("wget" "npm" "git" "tar" "gzip" "touch")
 # Array to store missing commands
 missing_commands=()
 

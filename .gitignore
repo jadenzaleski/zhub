@@ -11,3 +11,7 @@
 *.iml
 # MAC file
 .DS_Store
+# yq
+/bin/yq
+# config
+config.yaml

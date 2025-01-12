@@ -10,6 +10,8 @@
 
 source env.sh
 VERBOSE=0
+PORT=10000
+DB_PORT=$((PORT + 1))
 
 show_help() {
   cat << EOF
@@ -21,9 +23,10 @@ Options:
   -h,  --help                      Print this help
   -v,  --verbose                   Enable verbose output
   -V,  --version                   Print the version of ZHub
+  -p,  --port <port>               Specify the base port for ZHub (default: 10000)
 
 Example:
-  $(basename "$0") -v
+  $(basename "$0") -v --port 12345
 EOF
 }
 
@@ -53,6 +56,16 @@ parse_arguments() {
         echo "ZHub Version: $VERSION"
         echo "Usage: $(basename "$0") [OPTION]"
         exit 0
+        ;;
+      -p|--port)
+        if [[ -n "$2" && ! "$2" =~ ^- ]]; then
+          PORT=$2
+          DB_PORT=$((PORT + 1))
+          shift 2
+        else
+          echo "Error: -p,--port requires a value."
+          exit 1
+        fi
         ;;
       -*)
         show_arg_error "$1"
@@ -99,6 +112,16 @@ show_warning() {
   fi
 }
 
+initialize_config() {
+  print "Creating config.yaml..."
+  rm -f "$ROOT_DIR/config.yaml" > /dev/null 2>&1
+  touch "$ROOT_DIR/config.yaml"
+  print "config.yaml has been created."
+
+  yq eval '.globals.port = '$PORT'' -i "$ROOT_DIR/config.yaml"
+  yq eval '.globals.dbPort = '$DB_PORT'' -i "$ROOT_DIR/config.yaml"
+}
+
 install() {
   parse_arguments "$@"
   show_warning
@@ -135,14 +158,42 @@ install() {
   fi
 
   # config.yaml
-  print "Creating config.yaml..."
-  rm -f "$ROOT_DIR/config.yaml" > /dev/null 2>&1
-  touch config.yaml
-  print "config.yaml has been created."
+  initialize_config
+
+  # MySQL
+  print "Installing MySQL..."
+  rm -rf "$DB_DIR" > /dev/null 2>&1
+  mkdir "$ROOT_DIR/db" > /dev/null 2>&1 || stop 1 "Error creating DB directory."
+
+  if [ "$OS" == "Linux" ]; then
+    MYSQL_URL="https://dev.mysql.com/get/Downloads/MySQL-9.1/mysql-9.1.0-linux-glibc2.28-aarch64.tar.xz"
+  elif [ "$OS" == "Darwin" ]; then
+    MYSQL_URL="https://dev.mysql.com/get/Downloads/MySQL-9.1/mysql-9.1.0-macos14-arm64.tar.gz"
+  else
+    stop 1 "Error: Unsupported operating system: $OS"
+  fi
+  # Download MySQL
+  print "Downloading MySQL..."
+  wget "$MYSQL_URL" -O "$DB_DIR/mysql.tar.gz" > /dev/null 2>&1
+  # Extract it
+  print "Extracting MySQL..."
+  tar -xzf "$DB_DIR/mysql.tar.gz" --strip-components=1 -C "$DB_DIR" || stop 1
+  # Remove it
+  rm -rf "$DB_DIR/mysql.tar.gz" > /dev/null 2>&1
+  # initialize
+#  print "Initializing MySQL..."
+#  "$DB_DIR/bin/mysqld" --initialize --user=mysql --basedir="$DB_DIR" --datadir="$DB_DIR/data" --port="$DB_PORT"
+#  # start MySQL
+#  print "Starting MySQL..."
+#  source start_db.sh
+#  # secure install
+#  print "Running secure MySQ install..."
+#  "$DB_DIR/bin/mysql_secure_installation --port="$DB_PORT""
 
 
+  # start up ui
 
-  [ $VERBOSE -eq 0 ] && stop_spinner "Complete!"
+  [ $VERBOSE -eq 0 ] && stop_spinner "Installation Complete!"
 }
 
 install "$@"

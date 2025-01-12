@@ -20,6 +20,10 @@ VERSION="$(cat "$ROOT_DIR"/VERSION)"
 export VERSION
 
 OS=$(uname -s)
+export OS
+
+DB_DIR="$ROOT_DIR/db"
+export DB_DIR
 
 # --- COLORS ---
 # Reset
@@ -119,6 +123,5 @@ stop_spinner() {
   printf "\033[?25h" # Show the cursor
   echo
 }
-
 
 export -f spinner start_spinner stop_spinner update_spinner

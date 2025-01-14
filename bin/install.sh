@@ -91,7 +91,7 @@ stop() {
 }
 
 show_warning() {
-  printf "${BYELLOW}Warning: ${BWHITE}%s${COLOR_OFF}\n" "This script will rewrite most files in ZHub."
+  printf "${BYELLOW}Warning: ${BWHITE}%s${COLOR_OFF}\n" "This script will rewrite most files in ZHub (if already installed)."
   echo "It is recommended you make a backup of any file or folder you wish to keep."
   echo "Your apps directory will not be touched."
   printf "%s" "Would you like to continue? [yes/no]: "
@@ -112,22 +112,8 @@ show_warning() {
   fi
 }
 
-initialize_config() {
-  print "Creating config.yaml..."
-  rm -f "$ROOT_DIR/config.yaml" > /dev/null 2>&1
-  touch "$ROOT_DIR/config.yaml"
-  print "config.yaml has been created."
-
-  yq eval '.globals.port = '$PORT'' -i "$ROOT_DIR/config.yaml"
-  yq eval '.globals.dbPort = '$DB_PORT'' -i "$ROOT_DIR/config.yaml"
-}
-
-install() {
-  parse_arguments "$@"
-  show_warning
-  [ $VERBOSE -eq 0 ] && start_spinner
-
-  print "Checking dependencies..."
+check_dependencies() {
+    print "Checking dependencies..."
   if [ $VERBOSE -eq 0 ]; then
     ./check_dependencies.sh -s || stop 1
   elif [ $VERBOSE -eq 1 ]; then
@@ -136,31 +122,22 @@ install() {
     stop 1 "Invalid verbosity level."
   fi
   print "Found all dependencies."
+}
 
-  print "Installing yq..."
-  # Remove the old version if it exists (optional, for a truly fresh install)
-  rm -f "$BIN_DIR/yq" > /dev/null 2>&1
-  # Download and install the latest version of yq
-  if [ "$OS" == "Linux" ]; then
-    YQ_URL="https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64"
-  elif [ "$OS" == "Darwin" ]; then
-    YQ_URL="https://github.com/mikefarah/yq/releases/latest/download/yq_darwin_amd64"
-  else
-    stop 1 "Error: Unsupported operating system: $OS"
-  fi
-  wget "$YQ_URL" -O "$BIN_DIR/yq" > /dev/null 2>&1 && \
-  chmod +x "$BIN_DIR/yq" > /dev/null 2>&1
-  # Verify if installation was successful
-  if command -v yq &> /dev/null; then
-    print "yq installed successfully."
-  else
-    stop 1 "Error: yq installation failed."
-  fi
+initialize_config() {
+  print "Creating config.yaml..."
+  rm -f "$ROOT_DIR/config.yaml" > /dev/null 2>&1
+  touch "$ROOT_DIR/config.yaml"
+  print "config.yaml has been created."
 
-  # config.yaml
-  initialize_config
+  yq eval '.globals.version = "'$VERSION'"' -i "$ROOT_DIR/config.yaml"
+  yq eval '.globals.port = '$PORT'' -i "$ROOT_DIR/config.yaml"
+  yq eval '.globals.db_port = '$DB_PORT'' -i "$ROOT_DIR/config.yaml"
+  yq eval '.globals.root_directory = "'$ROOT_DIR'"' -i "$ROOT_DIR/config.yaml"
+  yq eval '.globals.bin_directory = "'$BIN_DIR'"' -i "$ROOT_DIR/config.yaml"
+}
 
-  # MySQL
+initialize_mysql() {
   print "Installing MySQL..."
   rm -rf "$DB_DIR" > /dev/null 2>&1
   mkdir "$ROOT_DIR/db" > /dev/null 2>&1 || stop 1 "Error creating DB directory."
@@ -189,10 +166,32 @@ install() {
 #  # secure install
 #  print "Running secure MySQ install..."
 #  "$DB_DIR/bin/mysql_secure_installation --port="$DB_PORT""
+}
 
+install_ui() {
+  # code here
+  pwd
+}
 
-  # start up ui
+install() {
+  parse_arguments "$@"
 
+  show_warning
+  # start up the spinner if not verbose
+  [ $VERBOSE -eq 0 ] && start_spinner
+  # make sure everything is installed
+  check_dependencies
+  # config.yaml
+  initialize_config
+  # install MySQL
+  initialize_mysql
+  # install ui
+  install_ui
+  # start MySQL
+
+  # start ui
+
+  # stop the spinner
   [ $VERBOSE -eq 0 ] && stop_spinner "Installation Complete!"
 }
 

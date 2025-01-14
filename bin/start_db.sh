@@ -9,7 +9,14 @@
 #
 source env.sh
 
-MYSQL_PORT=10001
+# Attempt to retrieve the db_port value using yq
+MYSQL_PORT=$(yq '.globals.db_port' "$ROOT_DIR/config.yaml")
+
+# Check if yq command succeeded
+if [[ $? -ne 0 || -z "$MYSQL_PORT" ]]; then
+  echo "Error: Failed to retrieve 'db_port' from config.yaml"
+  exit 1
+fi
 
 # Check if MySQL is already running
 echo "Checking if MySQL is running on port $MYSQL_PORT..."

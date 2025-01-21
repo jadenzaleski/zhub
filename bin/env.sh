@@ -6,6 +6,7 @@
 #
 # Description:
 # A file that will write all globals to the current scope.
+# This should not be used as a configuration file.
 #
 
 ROOT_DIR="$(cd .. && pwd)"

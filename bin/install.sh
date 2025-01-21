@@ -135,12 +135,14 @@ initialize_config() {
   yq eval '.globals.db_port = '$DB_PORT'' -i "$ROOT_DIR/config.yaml"
   yq eval '.globals.root_directory = "'$ROOT_DIR'"' -i "$ROOT_DIR/config.yaml"
   yq eval '.globals.bin_directory = "'$BIN_DIR'"' -i "$ROOT_DIR/config.yaml"
+  yq eval '.globals.db_user = "zhub"' -i "$ROOT_DIR/config.yaml"
+  yq eval '.globals.db_password = "password"' -i "$ROOT_DIR/config.yaml"
 }
 
 initialize_mysql() {
   print "Installing MySQL..."
   rm -rf "$DB_DIR" > /dev/null 2>&1
-  mkdir "$ROOT_DIR/db" > /dev/null 2>&1 || stop 1 "Error creating DB directory."
+  mkdir "$DB_DIR" > /dev/null 2>&1 || stop 1 "Error creating DB directory."
 
   if [ "$OS" == "Linux" ]; then
     MYSQL_URL="https://dev.mysql.com/get/Downloads/MySQL-9.1/mysql-9.1.0-linux-glibc2.28-aarch64.tar.xz"
@@ -149,28 +151,41 @@ initialize_mysql() {
   else
     stop 1 "Error: Unsupported operating system: $OS"
   fi
-  # Download MySQL
+
   print "Downloading MySQL..."
   wget "$MYSQL_URL" -O "$DB_DIR/mysql.tar.gz" > /dev/null 2>&1
-  # Extract it
+
   print "Extracting MySQL..."
-  tar -xzf "$DB_DIR/mysql.tar.gz" --strip-components=1 -C "$DB_DIR" || stop 1
-  # Remove it
+  tar -xzf "$DB_DIR/mysql.tar.gz" --strip-components=1 -C "$DB_DIR" || stop 1 "Error: Extraction of MySQL tar file failed."
   rm -rf "$DB_DIR/mysql.tar.gz" > /dev/null 2>&1
-  # initialize
-#  print "Initializing MySQL..."
-#  "$DB_DIR/bin/mysqld" --initialize --user=mysql --basedir="$DB_DIR" --datadir="$DB_DIR/data" --port="$DB_PORT"
-#  # start MySQL
-#  print "Starting MySQL..."
-#  source start_db.sh
-#  # secure install
-#  print "Running secure MySQ install..."
-#  "$DB_DIR/bin/mysql_secure_installation --port="$DB_PORT""
+
+  print "Initializing MySQL..."
+  "$DB_DIR/bin/mysqld" --initialize-insecure --user=mysql --basedir="$DB_DIR" --datadir="$DB_DIR/data" --port="$DB_PORT" || stop 1 "Error: MySQL initialization failed."
+
+#  print "Starting MySQL in safe mode..."
+#  "$DB_DIR/bin/mysqld_safe" --datadir="$DB_DIR/data" --port="$DB_PORT" &
+#  MYSQL_SAFE_PID=$!
+#
+#  print "Waiting for MySQL to be ready..."
+#  until "$DB_DIR/bin/mysqladmin" ping --socket="$DB_DIR/mysql.sock" --port="$DB_PORT" --silent; do
+#    sleep 1
+#  done
+  print "Starting MySQL..."
+  ./start_db.sh
+
+  MYSQL_USER=$(yq '.globals.db_user' "$ROOT_DIR/config.yaml")
+  MYSQL_PASSWORD=$(yq '.globals.password' "$ROOT_DIR/config.yaml")
+  # Create a SQL script to set up users and passwords
+  print "Setting up MySQL user and password..."
+  echo "CREATE USER '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD';
+  GRANT ALL PRIVILEGES ON *.* TO '$MYSQL_USER'@'localhost' WITH GRANT OPTION;
+  ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD';
+  FLUSH PRIVILEGES;" | "$DB_DIR/bin/mysql" --user="root" --port="$DB_PORT" || stop 1 "Error: MySQL user setup failed."
 }
 
 install_ui() {
   # code here
-  pwd
+  whoami > /dev/null 2>&1
 }
 
 install() {
@@ -183,11 +198,10 @@ install() {
   check_dependencies
   # config.yaml
   initialize_config
-  # install MySQL
+  # install & start MySQL
   initialize_mysql
   # install ui
   install_ui
-  # start MySQL
 
   # start ui
 

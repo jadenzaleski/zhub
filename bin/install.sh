@@ -9,6 +9,7 @@
 #
 
 source env.sh
+
 VERBOSE=0
 PORT=10000
 DB_PORT=$((PORT + 1))
@@ -140,7 +141,6 @@ initialize_config() {
 }
 
 initialize_mysql() {
-  print "Installing MySQL..."
   rm -rf "$DB_DIR" > /dev/null 2>&1
   mkdir "$DB_DIR" > /dev/null 2>&1 || stop 1 "Error creating DB directory."
 
@@ -160,10 +160,18 @@ initialize_mysql() {
   rm -rf "$DB_DIR/mysql.tar.gz" > /dev/null 2>&1
 
   print "Initializing MySQL..."
-  "$DB_DIR/bin/mysqld" --initialize-insecure --user=mysql --basedir="$DB_DIR" --datadir="$DB_DIR/data" --port="$DB_PORT" || stop 1 "Error: MySQL initialization failed."
+  if [[ $VERBOSE -eq 1 ]]; then
+    "$DB_DIR/bin/mysqld" --initialize-insecure --user=mysql --basedir="$DB_DIR" --datadir="$DB_DIR/data" --port="$DB_PORT" || stop 1 "Error: MySQL initialization failed."
+  else
+    "$DB_DIR/bin/mysqld" --initialize-insecure --user=mysql --basedir="$DB_DIR" --datadir="$DB_DIR/data" --port="$DB_PORT" > /dev/null 2>&1 || stop 1 "Error: MySQL initialization failed."
+  fi
 
   print "Starting MySQL..."
-  ./start_db.sh
+  if [[ $VERBOSE -eq 1 ]]; then
+    ./start_db.sh
+  else
+    ./start_db.sh > /dev/null 2>&1
+  fi
 
   MYSQL_USER=$(yq '.globals.db_user' "$ROOT_DIR/config.yaml")
   MYSQL_PASSWORD=$(yq '.globals.db_password' "$ROOT_DIR/config.yaml")
@@ -175,7 +183,7 @@ initialize_mysql() {
   FLUSH PRIVILEGES;" | "$DB_DIR/bin/mysql" --user="root" --port="$DB_PORT" || stop 1 "Error: MySQL user setup failed."
 }
 
-install_ui() {
+initialize_ui() {
   # code here
   whoami > /dev/null 2>&1
 }
@@ -193,10 +201,9 @@ install() {
   # install & start MySQL
   initialize_mysql
   # install ui
-  install_ui
+  initialize_ui
 
-  # start ui
-
+  print "Installation Complete!"
   # stop the spinner
   [ $VERBOSE -eq 0 ] && stop_spinner "Installation Complete!"
 }

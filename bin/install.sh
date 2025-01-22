@@ -162,19 +162,11 @@ initialize_mysql() {
   print "Initializing MySQL..."
   "$DB_DIR/bin/mysqld" --initialize-insecure --user=mysql --basedir="$DB_DIR" --datadir="$DB_DIR/data" --port="$DB_PORT" || stop 1 "Error: MySQL initialization failed."
 
-#  print "Starting MySQL in safe mode..."
-#  "$DB_DIR/bin/mysqld_safe" --datadir="$DB_DIR/data" --port="$DB_PORT" &
-#  MYSQL_SAFE_PID=$!
-#
-#  print "Waiting for MySQL to be ready..."
-#  until "$DB_DIR/bin/mysqladmin" ping --socket="$DB_DIR/mysql.sock" --port="$DB_PORT" --silent; do
-#    sleep 1
-#  done
   print "Starting MySQL..."
   ./start_db.sh
 
   MYSQL_USER=$(yq '.globals.db_user' "$ROOT_DIR/config.yaml")
-  MYSQL_PASSWORD=$(yq '.globals.password' "$ROOT_DIR/config.yaml")
+  MYSQL_PASSWORD=$(yq '.globals.db_password' "$ROOT_DIR/config.yaml")
   # Create a SQL script to set up users and passwords
   print "Setting up MySQL user and password..."
   echo "CREATE USER '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD';

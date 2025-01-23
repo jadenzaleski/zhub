@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - "v*"  # Trigger only on tags starting with 'v'
+      
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -42,7 +44,7 @@ jobs:
           git config user.email "actions@github.com"
           git add VERSION
           git commit -m "Update VERSION file to $VERSION"
-          git push origin HEAD
+          git push origin HEAD:refs/heads/master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

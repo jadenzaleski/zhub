@@ -32,9 +32,9 @@ jobs:
           git config user.email "actions@github.com"
           ls -al
           echo "------"
-          git fetch
+          git fetch --all
           echo "------"
-          git fetch --tags
+          git fetch --tags --force
           echo "------"
           git log --pretty=format:"- %h: %s"
           # Get the latest tag

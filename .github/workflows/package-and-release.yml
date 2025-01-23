@@ -84,7 +84,8 @@ jobs:
           if [ -z "$COMMITS" ]; then
             echo "No commits found."
           fi
-          echo "COMMITS=$COMMITS" >> $GITHUB_ENV
+          ESCAPED_COMMITS=$(echo "$COMMITS" | sed 's/%/%25/g; s/\n/%0A/g; s/\r/%0D/g')
+          echo "COMMITS=$ESCAPED_COMMITS" >> $GITHUB_ENV
 
       # Step 7: Create a tar.gz package
       - name: Package the repository

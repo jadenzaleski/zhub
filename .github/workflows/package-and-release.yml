@@ -4,8 +4,6 @@ on:
   push:
     tags:
       - "v*"  # Trigger only on tags starting with 'v'
-      
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -23,8 +21,13 @@ jobs:
       - name: Extract version from tag
         id: extract_version
         run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+            echo "VERSION=$VERSION" >> $GITHUB_ENV
+          else
+            echo "This workflow should be triggered by a tag."
+            exit 1
+          fi
 
       # Step 3: Update the VERSION file
       - name: Update VERSION file

@@ -150,10 +150,32 @@ initialize_mysql() {
   rm -rf "$DB_DIR" > /dev/null 2>&1
   mkdir "$DB_DIR" > /dev/null 2>&1 || stop 1 "Error creating DB directory."
 
-  if [ "$OS" == "Linux" ]; then
-    MYSQL_URL="https://dev.mysql.com/get/Downloads/MySQL-9.1/mysql-9.1.0-linux-glibc2.28-aarch64.tar.xz"
-  elif [ "$OS" == "Darwin" ]; then
-    MYSQL_URL="https://dev.mysql.com/get/Downloads/MySQL-9.1/mysql-9.1.0-macos14-arm64.tar.gz"
+  ARCH=$(uname -m)
+
+  if [[ "$OS" == "Linux" ]]; then
+    case "$ARCH" in
+      x86_64)
+        MYSQL_URL="https://dev.mysql.com/get/Downloads/MySQL-9.1/mysql-9.1.0-linux-glibc2.28-x86_64.tar.xz"
+        ;;
+      aarch64)
+        MYSQL_URL="https://dev.mysql.com/get/Downloads/MySQL-9.1/mysql-9.1.0-linux-glibc2.28-aarch64.tar.xz"
+        ;;
+      *)
+        stop 1 "Error: Unsupported architecture: $ARCH"
+        ;;
+    esac
+  elif [[ "$OS" == "Darwin" ]]; then
+    case "$ARCH" in
+      arm64)
+        MYSQL_URL="https://dev.mysql.com/get/Downloads/MySQL-9.1/mysql-9.1.0-macos14-arm64.tar.gz"
+        ;;
+      x86_64)
+        MYSQL_URL="https://dev.mysql.com/get/Downloads/MySQL-9.1/mysql-9.1.0-macos14-x86_64.tar.gz"
+        ;;
+      *)
+        stop 1 "Error: Unsupported architecture: $ARCH"
+        ;;
+    esac
   else
     stop 1 "Error: Unsupported operating system: $OS"
   fi
@@ -181,7 +203,6 @@ initialize_mysql() {
 
   MYSQL_USER=$(yq '.globals.db_user' "$ROOT_DIR/config.yaml")
   MYSQL_PASSWORD=$(yq '.globals.db_password' "$ROOT_DIR/config.yaml")
-  # Create a SQL script to set up users and passwords
   print "Setting up MySQL user and password..."
   echo "CREATE USER '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD';
   GRANT ALL PRIVILEGES ON *.* TO '$MYSQL_USER'@'localhost' WITH GRANT OPTION;

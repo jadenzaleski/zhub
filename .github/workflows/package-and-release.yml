@@ -1,4 +1,4 @@
-name: Update VERSION file and package release
+name: Version > Package > Release
 
 on:
   push:
@@ -45,7 +45,7 @@ jobs:
           git tag
           if [ -n "$(git status --porcelain)" ]; then
             git add VERSION
-            git commit -m "Update VERSION file to $VERSION"
+            git commit -m "Update VERSION file to ${VERSION#v}"
             git push origin HEAD:refs/heads/master
             git tag -d $VERSION
             git tag $VERSION
@@ -76,13 +76,13 @@ jobs:
         run: |
           if [ -z "$PREVIOUS_TAG" ]; then
             echo "No previous tag found. Showing all commits."
-            COMMITS=$(git log --pretty=format:"- %h: %s")
+            COMMITS=$(git log --pretty=format:"- %h (%ad): %s" --date=short)
           elif [ "$PREVIOUS_TAG" == "$LATEST_TAG" ]; then
             echo "Previous and latest tags are the same. Showing all commits."
-            COMMITS=$(git log --pretty=format:"- %h: %s")
+            COMMITS=$(git log --pretty=format:"- %h (%ad): %s" --date=short)
           else
             echo "Fetching commits between $PREVIOUS_TAG and $LATEST_TAG."
-            COMMITS=$(git log $PREVIOUS_TAG..$LATEST_TAG --pretty=format:"- %h: %s")
+            COMMITS=$(git log $PREVIOUS_TAG..$LATEST_TAG --pretty=format:"- %h (%ad): %s" --date=short)
           fi
           if [ -z "$COMMITS" ]; then
             COMMITS="No commits found since the last release."

@@ -54,12 +54,12 @@ jobs:
       - name: Package the repository
         run: |
           mkdir -p build
-          tar -czvf build/release-${{ env.VERSION }}.tar.gz --exclude=.git .
+          tar -czvf build/zhub-${{ env.VERSION }}.tar.gz --exclude=.git .
 
       # Step 6: Upload the tar.gz as a release asset
       - name: Create GitHub release
         uses: softprops/action-gh-release@v1
         with:
-          files: build/release-${{ env.VERSION }}.tar.gz
+          files: build/zhub-${{ env.VERSION }}.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

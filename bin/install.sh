@@ -162,7 +162,7 @@ initialize_mysql() {
   wget "$MYSQL_URL" -O "$DB_DIR/mysql.tar.gz" > /dev/null 2>&1
 
   print "Extracting MySQL..."
-  tar -xzf "$DB_DIR/mysql.tar.gz" --strip-components=1 -C "$DB_DIR" || stop 1 "Error: Extraction of MySQL tar file failed."
+  tar -xJf "$DB_DIR/mysql.tar.gz" --strip-components=1 -C "$DB_DIR" || stop 1 "Error: Extraction of MySQL tar file failed."
   rm -rf "$DB_DIR/mysql.tar.gz" > /dev/null 2>&1
 
   print "Initializing MySQL..."

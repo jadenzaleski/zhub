@@ -26,4 +26,4 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: install.sh
-        run: cd bin && ./install.sh -vf
+        run: cd bin && ./install.sh -v -f

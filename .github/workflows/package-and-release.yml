@@ -15,7 +15,7 @@ jobs:
     steps:
       # Step 1: Checkout the repository
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Step 2: Extract the version from the tag
       - name: Extract version from tag
@@ -54,12 +54,29 @@ jobs:
       - name: Package the repository
         run: |
           mkdir -p build
-          tar -czvf build/zhub-${{ env.VERSION }}.tar.gz --exclude=.git .
+          tar -czvf build/zhub.tar.gz --exclude=.git .
 
-      # Step 6: Upload the tar.gz as a release asset
+      # Step 6: Get the latest release tag
+      - name: Get latest release tag
+        id: get_latest_release
+        run: |
+          LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+
+      # Step 7: Get commits since the last release
+      - name: Get commits
+        id: get_commits
+        run: |
+          COMMITS=$(git log $LATEST_TAG..HEAD --pretty=format:"- [%s](https://github.com/jadenzaleski/zhub/commit/%H)")
+          echo "COMMITS=$COMMITS" >> $GITHUB_ENV
+
+      # Step 8: Create GitHub release
       - name: Create GitHub release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
-          files: build/zhub-${{ env.VERSION }}.tar.gz
+          files: build/zhub.tar.gz
+          body: |
+            ## Changes:
+            ${{ env.COMMITS }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -37,14 +37,18 @@ jobs:
           echo "$VERSION" > VERSION
           cat VERSION
 
-      # Step 4: Commit the updated VERSION file
+      # Step 4: Commit changes
       - name: Commit changes
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add VERSION
-          git commit -m "Update VERSION file to $VERSION"
-          git push origin HEAD:refs/heads/master
+          if [ -n "$(git status --porcelain)" ]; then
+            git add VERSION
+            git commit -m "Update VERSION file to $VERSION"
+            git push origin HEAD:refs/heads/master
+          else
+            echo "No changes to commit"
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

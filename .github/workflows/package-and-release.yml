@@ -74,10 +74,13 @@ jobs:
           if [ -z "$PREVIOUS_TAG" ]; then
             echo "No previous tag found. Showing all commits."
             COMMITS=$(git log --pretty=format:"- %h: %s")
+          elif [ "$PREVIOUS_TAG" == "$LATEST_TAG" ]; then
+            echo "Previous and latest tags are the same. Showing all commits."
+            COMMITS=$(git log --pretty=format:"- %h: %s")
           else
             COMMITS=$(git log $PREVIOUS_TAG..$LATEST_TAG --pretty=format:"- %h: %s")
           fi
-
+      
           if [ -z "$COMMITS" ]; then
             echo "No commits found."
           fi

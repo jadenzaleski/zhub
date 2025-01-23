@@ -48,6 +48,7 @@ jobs:
             git push origin HEAD:refs/heads/master
           else
             echo "No changes to commit"
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

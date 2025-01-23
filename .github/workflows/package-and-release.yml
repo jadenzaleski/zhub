@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - "v*"  # Trigger only on tags starting with 'v'
-      
+
   workflow_dispatch:
 
 permissions:
@@ -29,7 +29,6 @@ jobs:
           else
             echo "This workflow should be triggered by a tag."
             exit 1
-          fi
 
       # Step 3: Update the VERSION file
       - name: Update VERSION file
@@ -48,7 +47,6 @@ jobs:
             git push origin HEAD:refs/heads/master
           else
             echo "No changes to commit"
-          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -56,12 +54,12 @@ jobs:
       - name: Package the repository
         run: |
           mkdir -p build
-          tar -czvf build/release-${VERSION}.tar.gz --exclude=.git .
+          tar -czvf build/release-${{ env.VERSION }}.tar.gz --exclude=.git .
 
       # Step 6: Upload the tar.gz as a release asset
       - name: Create GitHub release
         uses: softprops/action-gh-release@v1
         with:
-          files: build/release-${VERSION}.tar.gz
+          files: build/release-${{ env.VERSION }}.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

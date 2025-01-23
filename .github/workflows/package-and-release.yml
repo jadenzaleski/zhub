@@ -54,15 +54,18 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Step 5: Get release tags
-      - name: Get release tags
-        id: get_release_tags
+      - name: Get previous release tag
+        id: get_previous_release
         run: |
           # Get the latest tag
           LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
 
-          # Find the previous tag by listing tags and filtering the one before the current tag
-          PREVIOUS_TAG=$(git tag --sort=version:refname | grep -B 1 "$LATEST_TAG" | head -n 1)
+          # List all tags sorted by version and find the tag before the latest tag
+          TAGS=$(git tag --sort=version:refname)
+          PREVIOUS_TAG=$(echo "$TAGS" | grep -B 1 "$LATEST_TAG" | head -n 1)
+          # Remove "v" from version tag for correct comparison
+          PREVIOUS_TAG=$(echo $PREVIOUS_TAG | sed 's/^v//')
           echo "PREVIOUS_TAG=$PREVIOUS_TAG" >> $GITHUB_ENV
 
       # Step 6: Get commits since the last release

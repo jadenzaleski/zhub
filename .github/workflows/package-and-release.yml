@@ -52,7 +52,7 @@ jobs:
       - name: Package the repository
         run: |
           mkdir -p build
-          tar -czvf build/release-${VERSION}.tar.gz . --exclude=".git"
+          tar -czvf build/release-${VERSION}.tar.gz --exclude={.git, .github} .
 
       # Step 6: Upload the tar.gz as a release asset
       - name: Create GitHub release

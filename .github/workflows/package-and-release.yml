@@ -53,25 +53,33 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 5: Get the latest release tag
-      - name: Get latest release tag
-        id: get_latest_release
+      # Step 5: Get release tags
+      - name: Get release tags
+        id: get_release_tags
         run: |
+          # Get the latest tag
           LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+
+          # Find the previous tag by listing tags and filtering the one before the current tag
+          PREVIOUS_TAG=$(git tag --sort=version:refname | grep -B 1 "$LATEST_TAG" | head -n 1)
+          echo "PREVIOUS_TAG=$PREVIOUS_TAG" >> $GITHUB_ENV
 
       # Step 6: Get commits since the last release
       - name: Get commits
         id: get_commits
         run: |
+          echo "PREVIOUS_TAG is $PREVIOUS_TAG"
           echo "LATEST_TAG is $LATEST_TAG"
-          if [ -z "$LATEST_TAG" ]; then
-            echo "No tags found. Exiting."
-            exit 1
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "No previous tag found. Showing all commits."
+            COMMITS=$(git log --pretty=format:"- %h: %s")
+          else
+            COMMITS=$(git log $PREVIOUS_TAG..$LATEST_TAG --pretty=format:"- %h: %s")
           fi
-          COMMITS=$(git log $LATEST_TAG..HEAD --pretty=format:"- %h: %s")
+
           if [ -z "$COMMITS" ]; then
-            echo "No commits found between $LATEST_TAG and HEAD."
+            echo "No commits found."
           fi
           echo "COMMITS=$COMMITS" >> $GITHUB_ENV
 

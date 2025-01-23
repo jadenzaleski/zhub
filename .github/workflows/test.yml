@@ -30,8 +30,13 @@ jobs:
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
+          ls -al
+          echo "------"
           git fetch
+          echo "------"
           git fetch --tags
+          echo "------"
+          git log --pretty=format:"- %h: %s"
           # Get the latest tag
           LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV

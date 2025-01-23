@@ -35,40 +35,41 @@ jobs:
           echo "$VERSION" > VERSION
           cat VERSION
 
-      # Step 4: Commit changes
-      - name: Commit changes
+      # Step 4: Commit changes and move the tag
+      - name: Commit changes and move tag
         run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
           if [ -n "$(git status --porcelain)" ]; then
             git add VERSION
             git commit -m "Update VERSION file to $VERSION"
             git push origin HEAD:refs/heads/master
+            git tag -d $VERSION
+            git tag $VERSION
+            git push origin $VERSION --force
           else
             echo "No changes to commit"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 5: Create a tar.gz package
-      - name: Package the repository
-        run: |
-          mkdir -p build
-          tar -czvf build/zhub.tar.gz --exclude=.git .
-
-      # Step 6: Get the latest release tag
+      # Step 5: Get the latest release tag
       - name: Get latest release tag
         id: get_latest_release
         run: |
           LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
 
-      # Step 7: Get commits since the last release
+      # Step 6: Get commits since the last release
       - name: Get commits
         id: get_commits
         run: |
-          COMMITS=$(git log $LATEST_TAG..HEAD --pretty=format:"- [%s](https://github.com/jadenzaleski/zhub/commit/%H)")
+          COMMITS=$(git log $LATEST_TAG..HEAD --pretty=format:"- %h: %s")
           echo "COMMITS=$COMMITS" >> $GITHUB_ENV
+
+      # Step 7: Create a tar.gz package
+      - name: Package the repository
+        run: |
+          mkdir -p build
+          tar -czvf build/zhub.tar.gz --exclude=.git .
 
       # Step 8: Create GitHub release
       - name: Create GitHub release
@@ -76,7 +77,7 @@ jobs:
         with:
           files: build/zhub.tar.gz
           body: |
-            ## Changes:
+            # Changes:
             ${{ env.COMMITS }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

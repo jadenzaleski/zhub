@@ -55,4 +55,4 @@ jobs:
       - name: Output Commits
         run: |
           echo "Commits between tags:"
-          echo ${{ env.COMMITS }}
+          printf "%s\n" "${{ env.COMMITS }}"

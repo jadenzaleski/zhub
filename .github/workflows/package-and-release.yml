@@ -40,6 +40,8 @@ jobs:
           git add VERSION
           git commit -m "Update VERSION file to $VERSION"
           git push origin HEAD
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Step 5: Create a tar.gz package
       - name: Package the repository

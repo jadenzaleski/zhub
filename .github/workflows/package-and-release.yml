@@ -40,6 +40,7 @@ jobs:
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
+          git fetch --tags
           if [ -n "$(git status --porcelain)" ]; then
             git add VERSION
             git commit -m "Update VERSION file to $VERSION"
@@ -60,20 +61,15 @@ jobs:
           # Get the latest tag
           LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
-
-          # List all tags sorted by version and find the tag before the latest tag
-          TAGS=$(git tag --sort=version:refname)
-          PREVIOUS_TAG=$(echo "$TAGS" | grep -B 1 "$LATEST_TAG" | head -n 1)
-          # Remove "v" from version tag for correct comparison
-          PREVIOUS_TAG=$(echo $PREVIOUS_TAG | sed 's/^v//')
+          
+          # Find the previous tag by listing tags and filtering the one before the current tag
+          PREVIOUS_TAG=$(git tag --sort=version:refname | grep -B 1 "$LATEST_TAG" | head -n 1)
           echo "PREVIOUS_TAG=$PREVIOUS_TAG" >> $GITHUB_ENV
 
       # Step 6: Get commits since the last release
       - name: Get commits
         id: get_commits
         run: |
-          echo "PREVIOUS_TAG is $PREVIOUS_TAG"
-          echo "LATEST_TAG is $LATEST_TAG"
           if [ -z "$PREVIOUS_TAG" ]; then
             echo "No previous tag found. Showing all commits."
             COMMITS=$(git log --pretty=format:"- %h: %s")

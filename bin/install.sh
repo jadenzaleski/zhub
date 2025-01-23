@@ -11,6 +11,7 @@
 source env.sh
 
 VERBOSE=0
+FORCE=0
 PORT=10000
 DB_PORT=$((PORT + 1))
 
@@ -22,6 +23,7 @@ Usage: $(basename "$0") [OPTION]
 
 Options:
   -h,  --help                      Print this help
+  -f,  --force                     Accept all warnings
   -v,  --verbose                   Enable verbose output
   -V,  --version                   Print the version of ZHub
   -p,  --port <port>               Specify the base port for ZHub (default: 10000)
@@ -48,6 +50,10 @@ parse_arguments() {
       -h|--help)
         show_help
         exit 0
+        ;;
+      -f|--force)
+        FORCE=1
+        shift
         ;;
       -v|--verbose)
         VERBOSE=1
@@ -191,7 +197,7 @@ initialize_ui() {
 install() {
   parse_arguments "$@"
 
-  show_warning
+  [ $FORCE -eq 0 ] && show_warning
   # start up the spinner if not verbose
   [ $VERBOSE -eq 0 ] && start_spinner
   # make sure everything is installed

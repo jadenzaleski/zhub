@@ -3,7 +3,7 @@ name: Update VERSION file and package release
 on:
   push:
     tags:
-      - "v*"  # Trigger only on tags starting with 'v'
+      - "v[0-9]+.[0-9]+.[0-9]+" # only v1.23.45 format tags
 
 permissions:
   contents: write
@@ -33,7 +33,7 @@ jobs:
       # Update the VERSION file
       - name: Update VERSION file
         run: |
-          echo "$VERSION" > VERSION
+          echo "${VERSION#v}" > VERSION
           cat VERSION
 
       # Commit changes and move the tag

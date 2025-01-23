@@ -64,7 +64,15 @@ jobs:
       - name: Get commits
         id: get_commits
         run: |
+          echo "LATEST_TAG is $LATEST_TAG"
+          if [ -z "$LATEST_TAG" ]; then
+            echo "No tags found. Exiting."
+            exit 1
+          fi
           COMMITS=$(git log $LATEST_TAG..HEAD --pretty=format:"- %h: %s")
+          if [ -z "$COMMITS" ]; then
+            echo "No commits found between $LATEST_TAG and HEAD."
+          fi
           echo "COMMITS=$COMMITS" >> $GITHUB_ENV
 
       # Step 7: Create a tar.gz package

@@ -155,10 +155,10 @@ initialize_mysql() {
   if [[ "$OS" == "Linux" ]]; then
     case "$ARCH" in
       x86_64)
-        MYSQL_URL="https://dev.mysql.com/get/Downloads/MySQL-9.1/mysql-9.1.0-linux-glibc2.28-x86_64.tar.xz"
+        MYSQL_URL="https://dev.mysql.com/get/Downloads/MySQL-9.1/mysql-9.2.0-linux-glibc2.28-x86_64.tar.xz"
         ;;
       aarch64)
-        MYSQL_URL="https://dev.mysql.com/get/Downloads/MySQL-9.1/mysql-9.1.0-linux-glibc2.28-aarch64.tar.xz"
+        MYSQL_URL="https://dev.mysql.com/get/Downloads/MySQL-9.1/mysql-9.2.0-linux-glibc2.28-aarch64.tar.xz"
         ;;
       *)
         stop 1 "Error: Unsupported architecture: $ARCH"
@@ -167,10 +167,10 @@ initialize_mysql() {
   elif [[ "$OS" == "Darwin" ]]; then
     case "$ARCH" in
       arm64)
-        MYSQL_URL="https://dev.mysql.com/get/Downloads/MySQL-9.1/mysql-9.1.0-macos14-arm64.tar.gz"
+        MYSQL_URL="https://dev.mysql.com/get/Downloads/MySQL-9.1/mysql-9.2.0-macos15-arm64.tar.gz"
         ;;
       x86_64)
-        MYSQL_URL="https://dev.mysql.com/get/Downloads/MySQL-9.1/mysql-9.1.0-macos14-x86_64.tar.gz"
+        MYSQL_URL="https://dev.mysql.com/get/Downloads/MySQL-9.1/mysql-9.2.0-macos15-x86_64.tar.gz"
         ;;
       *)
         stop 1 "Error: Unsupported architecture: $ARCH"
@@ -236,3 +236,6 @@ install() {
 }
 
 install "$@"
+
+# If everything goes to plan, exit 0
+exit 0

@@ -1,0 +1,125 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: [ "CI" ] # Triggered after CI completes
+    types:
+      - completed
+
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (e.g., 1.2.3)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  package_version_release:
+    name: Package, Version, and Release
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Determine the version (if manual input is provided)
+      - name: Set version
+        id: set_version
+        run: |
+          if [ "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+            echo "Setting version to $VERSION"
+            echo "$VERSION" > VERSION
+          
+            git config user.name "GitHub Actions"
+            git config user.email "actions@github.com"
+            git fetch --tags
+            if [ -n "$(git status --porcelain)" ]; then
+              git add VERSION
+              git commit -m "Update VERSION file to ${VERSION}"
+              git push origin HEAD:refs/heads/master
+              git tag -d v$VERSION
+              git tag v$VERSION
+              git push origin v$VERSION --force
+            else
+              echo "No changes to commit"
+            fi
+          else
+            VERSION=$(cat VERSION || echo "0.0.0")
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Get release tags
+      - name: Get previous release tag
+        id: get_previous_release
+        if: ${{ github.event.inputs.version != '' }}
+        run: |
+          git fetch --all
+          git fetch --tags --force
+          # Get the latest tag
+          LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+          
+          # Get the previous tag
+          PREVIOUS_TAG=$(git tag --sort=version:refname | grep -B 1 "$LATEST_TAG" | head -n 1)
+          echo "PREVIOUS_TAG=$PREVIOUS_TAG" >> $GITHUB_ENV
+
+      # Get commits since the last release
+      - name: Get commits
+        id: get_commits
+        if: ${{ github.event.inputs.version != '' }}
+        run: |
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "No previous tag found. Showing all commits."
+            COMMITS=$(git log --pretty=format:"- %h (%ad): %s" --date=short)
+          elif [ "$PREVIOUS_TAG" == "$LATEST_TAG" ]; then
+            echo "Previous and latest tags are the same. Showing all commits."
+            COMMITS=$(git log --pretty=format:"- %h (%ad): %s" --date=short)
+          else
+            echo "Fetching commits between $PREVIOUS_TAG and $LATEST_TAG."
+            COMMITS=$(git log $PREVIOUS_TAG..$LATEST_TAG --pretty=format:"- %h (%ad): %s" --date=short)
+          fi
+          if [ -z "$COMMITS" ]; then
+            COMMITS="No commits found since the last release."
+          fi
+          echo "COMMITS<<EOF" >> $GITHUB_ENV
+          echo "$COMMITS" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      # Create a tar.gz package
+      - name: Package the repository
+        run: |
+          mkdir -p build
+          tar -czvf build/zhub-latest.tar.gz --exclude='.git*' .
+          
+          if [ "${{ github.event.inputs.version }}" ]; then
+            cp build/zhub-latest.tar.gz build/zhub.tar.gz
+          fi
+          
+      # Upload the artifact (this happens every time the workflow runs)
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zhub-latest
+          path: build/zhub-latest.tar.gz
+
+      # If the version was provided, create a GitHub release
+      - name: Create GitHub release (if version is provided)
+        if: ${{ github.event.inputs.version != '' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/zhub.tar.gz
+          tag_name: "v${{ env.VERSION }}"
+          body: |
+            # Changes:
+            ${{ env.COMMITS }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

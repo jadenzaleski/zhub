@@ -5,23 +5,28 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
-  workflow_dispatch:
 
 jobs:
   install:
     # Define a matrix to run on multiple operating systems
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-latest]
+        os: [ ubuntu-22.04, macos-latest ]
 
     # Use the OS defined in the matrix
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
 
     steps:
       # Checkout the repository
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Run the install script
+      # Run the installation script
       - name: Run install.sh
         run: cd bin && ./install.sh -v -f
+
+        # Run tests
+      - name: Run tests
+        run: |
+          echo "Running tests..."

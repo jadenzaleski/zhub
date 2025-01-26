@@ -23,11 +23,11 @@ if [[ $? -ne 0 || "$MYSQL_PORT" == "null" || "$MYSQL_USER" == "null" || "$MYSQL_
 fi
 # Check if MySQL is running
 echo "Checking if MySQL is running on port $MYSQL_PORT..."
-if "$DB_DIR/bin/mysqladmin" --port="$MYSQL_PORT" ping --silent; then
+if "$DB_DIR/bin/mysqladmin" --defaults-file="$DB_DIR/my.cnf" ping --silent; then
     echo "Stopping MySQL on port $MYSQL_PORT..."
 
-    # Try to gracefully stop MySQL server
-    shutdown_output=$("$DB_DIR/bin/mysqladmin" --user="$MYSQL_USER" --password="$MYSQL_PASSWORD" --port="$MYSQL_PORT" shutdown 2>&1)
+    # Try to gracefully stop MySQL server --user="$MYSQL_USER" --password="$MYSQL_PASSWORD"
+    shutdown_output=$("$DB_DIR/bin/mysqladmin" --defaults-file="$DB_DIR/my.cnf" --user="$MYSQL_USER" --password="$MYSQL_PASSWORD" shutdown 2>&1)
     shutdown_exit_code=$?
 
     if [[ $shutdown_exit_code -ne 0 ]]; then
@@ -37,7 +37,7 @@ if "$DB_DIR/bin/mysqladmin" --port="$MYSQL_PORT" ping --silent; then
 
      # Wait for MySQL to completely shut down
     echo "Waiting for MySQL to shut down..."
-    while "$DB_DIR/bin/mysqladmin" --port="$MYSQL_PORT" ping --silent; do
+    while "$DB_DIR/bin/mysqladmin" --defaults-file="$DB_DIR/my.cnf" ping --silent; do
         sleep 1
         TIMEOUT=$((TIMEOUT + 1))
         # Check if timeout has reached 60 seconds

@@ -20,6 +20,7 @@ jobs:
   package_version_release:
     name: Package, Version, and Release
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }} # Only run if CI was successful
 
     steps:
       # Checkout the repository

@@ -24,9 +24,9 @@ missing_commands=()
 # Loop through each command and check if it is installed
 for cmd in "${commands[@]}"; do
     if command -v "$cmd" &> /dev/null; then
-      [[ ! "$*" == *"-s"* ]] && printf "${GREEN} %s$COLOR_OFF\n" "$cmd"
+      [[ ! "$*" == *"-s"* ]] && printf "${GREEN}✓ %s$COLOR_OFF\n" "$cmd"
     else
-      [[ ! "$*" == *"-s"* ]] && printf "${RED} %s$COLOR_OFF\n" "$cmd"
+      [[ ! "$*" == *"-s"* ]] && printf "${RED}✖ %s$COLOR_OFF\n" "$cmd"
       missing_commands+=("$cmd")
     fi
 done

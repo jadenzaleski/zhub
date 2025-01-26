@@ -23,16 +23,16 @@ fi
 
 # Check if MySQL is already running
 echo "Checking if MySQL is running on port $MYSQL_PORT..."
-if "$DB_DIR/bin/mysqladmin" --port="$MYSQL_PORT" ping --silent; then
+if "$DB_DIR/bin/mysqladmin" --defaults-file="$DB_DIR/my.cnf" ping --silent; then
     echo "MySQL is already running on port $MYSQL_PORT."
 else
     echo "Starting MySQL on port $MYSQL_PORT..."
     # Start MySQL with the specified port
-    "$DB_DIR/bin/mysqld" --user="$MYSQL_USER" --basedir="$DB_DIR" --datadir="$DB_DIR/data" --port="$MYSQL_PORT" &
+    "$DB_DIR/bin/mysqld" --defaults-file="$DB_DIR/my.cnf" &
 
     # Wait for MySQL to be ready
     echo "Waiting for MySQL..."
-    while ! "$DB_DIR/bin/mysqladmin" --port="$MYSQL_PORT" ping --silent; do
+    while ! "$DB_DIR/bin/mysqladmin" --defaults-file="$DB_DIR/my.cnf" ping --silent; do
         sleep 1
         TIMEOUT=$((TIMEOUT + 1))
         # Check if timeout has reached 60 seconds

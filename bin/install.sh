@@ -15,6 +15,16 @@ FORCE=0
 PORT=10000
 DB_PORT=$((PORT + 1))
 
+logo() {
+echo " ______   _       _     ";
+echo "|__  / | | |_   _| |__  ";
+echo "  / /| |_| | | | | '_ \\ ";
+echo " / /_|  _  | |_| | |_) |";
+echo "/____|_| |_|\\__,_|_.__/ ";
+echo ""
+echo "Version: $VERSION"
+}
+
 show_help() {
   cat << EOF
 Installation script for ZHub.
@@ -148,7 +158,8 @@ initialize_config() {
 
 initialize_mysql() {
   rm -rf "$DB_DIR" > /dev/null 2>&1
-  mkdir "$DB_DIR" > /dev/null 2>&1 || stop 1 "Error creating DB directory."
+  sleep 1 # Wait for the directory to be deleted even though this doesn't make a lot of sense
+  mkdir -p "$DB_DIR/logs" > /dev/null 2>&1 || stop 1 "Error creating DB/logs directory."
 
   ARCH=$(uname -m)
 
@@ -187,11 +198,28 @@ initialize_mysql() {
   tar -xJf "$DB_DIR/mysql.tar.gz" --strip-components=1 -C "$DB_DIR" || stop 1 "Error: Extraction of MySQL tar file failed."
   rm -rf "$DB_DIR/mysql.tar.gz" > /dev/null 2>&1
 
+  cat > "$DB_DIR/my.cnf" <<EOF
+[mysqld]
+datadir=$DB_DIR/data
+port=$DB_PORT
+socket=$DB_DIR/mysql.sock
+log-error=$DB_DIR/logs/error.log
+general-log=1
+general-log-file=$DB_DIR/logs/general.log
+slow-query-log=1
+slow-query-log-file=$DB_DIR/logs/slow.log
+long_query_time=2
+
+[client]
+socket=$DB_DIR/mysql.sock
+port=$DB_PORT
+EOF
+
   print "Initializing MySQL..."
   if [[ $VERBOSE -eq 1 ]]; then
-    "$DB_DIR/bin/mysqld" --initialize-insecure --user=mysql --basedir="$DB_DIR" --datadir="$DB_DIR/data" --port="$DB_PORT" || stop 1 "Error: MySQL initialization failed."
+    "$DB_DIR/bin/mysqld" --defaults-file="$DB_DIR/my.cnf" --initialize-insecure || stop 1 "Error: MySQL initialization failed."
   else
-    "$DB_DIR/bin/mysqld" --initialize-insecure --user=mysql --basedir="$DB_DIR" --datadir="$DB_DIR/data" --port="$DB_PORT" > /dev/null 2>&1 || stop 1 "Error: MySQL initialization failed."
+    "$DB_DIR/bin/mysqld" --defaults-file="$DB_DIR/my.cnf" --initialize-insecure > /dev/null 2>&1 || stop 1 "Error: MySQL initialization failed."
   fi
 
   print "Starting MySQL..."
@@ -207,7 +235,7 @@ initialize_mysql() {
   echo "CREATE USER '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD';
   GRANT ALL PRIVILEGES ON *.* TO '$MYSQL_USER'@'localhost' WITH GRANT OPTION;
   ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD';
-  FLUSH PRIVILEGES;" | "$DB_DIR/bin/mysql" --user="root" --port="$DB_PORT" || stop 1 "Error: MySQL user setup failed."
+  FLUSH PRIVILEGES;" | "$DB_DIR/bin/mysql" --defaults-file="$DB_DIR/my.cnf" --user="root" --port="$DB_PORT" || stop 1 "Error: MySQL user setup failed."
 }
 
 initialize_ui() {
@@ -219,6 +247,8 @@ install() {
   parse_arguments "$@"
 
   [ $FORCE -eq 0 ] && show_warning
+
+  logo
   # start up the spinner if not verbose
   [ $VERBOSE -eq 0 ] && start_spinner
   # make sure everything is installed

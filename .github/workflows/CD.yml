@@ -120,21 +120,21 @@ jobs:
       - name: Upload zhub-latest artifact
         uses: actions/upload-artifact@v4
         with:
-          path: zhub-latest.tar.gz
+          path: ../zhub-latest.tar.gz
 
       # Upload release artifact (only if version is provided)
       - name: Upload zhub artifact
         if: ${{ github.event.inputs.version != '' }}
         uses: actions/upload-artifact@v4
         with:
-          path: zhub.tar.gz
+          path: ../zhub.tar.gz
 
       # If the version was provided, create a GitHub release
       - name: Create GitHub release (if version is provided)
         if: ${{ github.event.inputs.version != '' }}
         uses: softprops/action-gh-release@v2
         with:
-          files: zhub.tar.gz
+          files: ../zhub.tar.gz
           tag_name: "v${{ env.VERSION }}"
           body: |
             # Changes:

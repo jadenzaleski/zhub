@@ -110,7 +110,7 @@ jobs:
         run: |
           ls -al
           mkdir -p artifacts
-          tar -czvf artifacts/zhub-latest.tar.gz --exclude='.git*' -C . .
+          tar -czvf artifacts/zhub-latest.tar.gz --exclude='.git* artifacts' -C . .
           if [ "${{ github.event.inputs.version }}" ]; then
             cp artifacts/zhub-latest.tar.gz artifacts/zhub.tar.gz
           fi

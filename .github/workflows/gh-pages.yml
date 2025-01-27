@@ -30,12 +30,11 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
 
-      # Copy the downloaded artifacts into the gh-pages branch
+      # Add new or updated artifacts to the gh-pages branch
       - name: Deploy to GitHub Pages
         run: |
           git fetch --depth=1 origin gh-pages
           git checkout gh-pages
-          rm -rf * # Remove existing content
           cp -R ./artifacts/* ./ # Copy new artifacts
           git add .
           git commit -m "Deploy from CD workflow artifacts [skip ci]" || echo "No changes to commit"

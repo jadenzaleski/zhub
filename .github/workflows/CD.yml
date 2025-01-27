@@ -105,37 +105,37 @@ jobs:
           echo "$COMMITS" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      # Create a tar.gz package
+      # Create a .tgz package
       - name: Package the repository
         run: |
           ls -al
           mkdir -p artifacts
-          tar -czvf artifacts/zhub-latest.tar.gz --exclude='artifacts' --exclude='.git*' -C . .
+          tar -czvf artifacts/zhub-latest.tgz --exclude='artifacts' --exclude='.git*' -C . .
           if [ "${{ github.event.inputs.version }}" ]; then
-            cp artifacts/zhub-latest.tar.gz artifacts/zhub.tar.gz
+            cp artifacts/zhub-latest.tgz artifacts/zhub.tgz
           fi
           
       # Upload the artifact (this happens every time the workflow runs)
       - name: Upload zhub-latest artifact
         uses: actions/upload-artifact@v4
         with:
-          name: zhub-latest.tar.gz
-          path: artifacts/zhub-latest.tar.gz
+          name: zhub-latest.tgz
+          path: artifacts/zhub-latest.tgz
 
       # Upload release artifact (only if version is provided)
       - name: Upload zhub artifact
         if: ${{ github.event.inputs.version != '' }}
         uses: actions/upload-artifact@v4
         with:
-          name: zhub.tar.gz
-          path: artifacts/zhub.tar.gz
+          name: zhub.tgz
+          path: artifacts/zhub.tgz
 
       # If the version was provided, create a GitHub release
       - name: Create GitHub release (if version is provided)
         if: ${{ github.event.inputs.version != '' }}
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/zhub.tar.gz
+          files: artifacts/zhub.tgz
           tag_name: "v${{ env.VERSION }}"
           body: |
             # Changes:

@@ -119,6 +119,7 @@ jobs:
       - name: Upload zhub-latest artifact
         uses: actions/upload-artifact@v4
         with:
+          name: zhub-latest.tar.gz
           path: artifacts/zhub-latest.tar.gz
 
       # Upload release artifact (only if version is provided)
@@ -126,6 +127,7 @@ jobs:
         if: ${{ github.event.inputs.version != '' }}
         uses: actions/upload-artifact@v4
         with:
+          name: zhub.tar.gz
           path: artifacts/zhub.tar.gz
 
       # If the version was provided, create a GitHub release

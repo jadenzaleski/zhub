@@ -64,6 +64,17 @@ export ON_BLACK ON_RED ON_GREEN ON_YELLOW ON_BLUE ON_PURPLE ON_CYAN ON_WHITE
 #log "$ON_RED  $ON_GREEN  $ON_YELLOW  $ON_BLUE  $ON_PURPLE  $ON_CYAN  $ON_WHITE  $ON_BLACK  $COLOR_OFF"
 # --- END OF COLORS ---
 
+#Github variables
+REPO_OWNER="jadenzaleski"
+export REPO_OWNER
+
+REPO_NAME="zhub"
+export REPO_NAME
+
+CD_WORKFLOW="CD.yml"
+export CD_WORKFLOW
+
+
 # Redefine printf to include the prefix with filename and date
 log() {
   local filename="$(basename "$0")"

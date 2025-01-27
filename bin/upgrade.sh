@@ -80,13 +80,15 @@ stop() {
   exit "$1"
 }
 
-
-
 check_new_build() {
-  curl -s "https://api.github.com/repos/jadenzaleski/zhub/actions/workflows/CD.yml/runs?status=success" -o response.json
-  jq -r '.workflow_runs[0].id' response.json
-}
+  curl -s "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${CD_WORKFLOW}/runs?status=success" -o cd_workflow_runs.json
+  ARTIFACT_ID=$(jq -r '.workflow_runs[0].id' cd_workflow_runs.json)
 
+  curl -s "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/runs/${ARTIFACT_ID}/artifacts" -o build_artifacts.json
+  ARTIFACT_URL=$(jq -r '.artifacts[0].archive_download_url' build_artifacts.json)
+
+  curl -L -o "zhub-latest.tar.gz" "${ARTIFACT_URL}"
+}
 
 check_new_release() {
   whoami > /dev/null 2>&1
@@ -94,12 +96,12 @@ check_new_release() {
 
 # Script process starts here:
 parse_arguments "$@"
-check_dependencies
+./check_dependencies.sh
 
-rm -rf $ROOT_DIR/upgrade
+rm -rf "$ROOT_DIR"/upgrade
 
-mkdir $ROOT_DIR/upgrade 2>&1 /dev/null
-cd $ROOT_DIR/upgrade
+mkdir "$ROOT_DIR"/upgrade >/dev/null 2>&1
+cd "$ROOT_DIR"/upgrade || stop 1 "Error: Unable to create upgrade directory."
 
 
 

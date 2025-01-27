@@ -12,9 +12,9 @@
 # MAC file
 .DS_Store
 # yq
-/bin/yq
+/bin
 # config
 config.yaml
 /db
-
+/ui
 /upgrade

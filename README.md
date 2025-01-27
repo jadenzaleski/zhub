@@ -1,12 +1,13 @@
+<p align="center"><img src="./logo.png" alt="Image" width="200" height="200"></p>
+<p align="center">
+    <img src="https://img.shields.io/github/actions/workflow/status/jadenzaleski/zhub/CI.yml?style=flat-square&logo=GitHub&label=CI" alt="GitHub Actions Workflow Status">
+    <img src="https://img.shields.io/github/actions/workflow/status/jadenzaleski/zhub/CD.yml?style=flat-square&logo=GitHub&label=CD" alt="GitHub Actions Workflow Status">
+    <img src="https://img.shields.io/github/commits-since/jadenzaleski/zhub/latest?style=flat-square" alt="GitHub commits since latest release">
+</p>
+<h1 align="center">ZHub</h1>
+<p align="center">A nice place for all my applications to live and be tested.</p>
 
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/jadenzaleski/zhub/CI.yml?style=flat-square&logo=GitHub&label=CI)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/jadenzaleski/zhub/CD.yml?style=flat-square&logo=GitHub&label=CD)
-
-![GitHub commits since latest release](https://img.shields.io/github/commits-since/jadenzaleski/zhub/latest?style=flat-square)
-
-
-A nice place for all my applications to live and be tested.
-
+# Requirements
 
 # Installation
 
@@ -23,10 +24,6 @@ This will download the latest version of zhub and extract it to a folder named `
 ## Latest Passing Build
 
 # Workflow
-All done with github actions.
-CI runs on every push to master.
-If CI passes, CD takes that and packages it up.
-Will have one more workflow that will be dispatched manually to create an official release.
 
 ```mermaid
 ---

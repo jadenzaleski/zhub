@@ -29,6 +29,18 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Update build number
+        id: update_build_number
+        run: |
+          git config user.name "CD"
+          git config user.email "actions@github.com"
+          
+          echo "Setting build number to ${{ github.run_number }}"
+          echo "${{ github.run_number }}" > BUILD
+          git add BUILD
+          git commit -m "Update BUILD file to ${{ github.run_number }} [skip ci]"
+          git push origin HEAD:refs/heads/master
+
       # Determine the version (if manual input is provided)
       - name: Set version
         id: set_version
@@ -38,12 +50,10 @@ jobs:
             echo "Setting version to $VERSION"
             echo "$VERSION" > VERSION
           
-            git config user.name "GitHub Actions"
-            git config user.email "actions@github.com"
             git fetch --tags
             if [ -n "$(git status --porcelain)" ]; then
               git add VERSION
-              git commit -m "Update VERSION file to ${VERSION}"
+              git commit -m "Update VERSION file to ${VERSION} [skip ci]"
               git push origin HEAD:refs/heads/master
               git tag -d v$VERSION
               git tag v$VERSION
@@ -100,7 +110,8 @@ jobs:
         run: |
           mkdir -p build
           tar -czvf build/zhub-latest.tar.gz --exclude='.git*' .
-          
+          ls -al
+          ls -al build
           if [ "${{ github.event.inputs.version }}" ]; then
             cp build/zhub-latest.tar.gz build/zhub.tar.gz
           fi

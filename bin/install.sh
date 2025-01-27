@@ -36,10 +36,10 @@ Options:
   -f,  --force                     Accept all warnings
   -v,  --verbose                   Enable verbose output
   -V,  --version                   Print the version of ZHub
-  -p,  --port <port>               Specify the base port for ZHub (default: 10000)
+  -p=<port>, --port=<port>         Specify the base port for ZHub (default: 10000)
 
 Example:
-  $(basename "$0") -v --port 12345
+  $(basename "$0") -v -f --port=12345
 EOF
 }
 
@@ -47,19 +47,15 @@ show_arg_error() {
   echo "Error: unrecognized argument(s): $1"
   echo "Usage: $(basename "$0") [OPTION]"
   echo "Try './$(basename "$0") --help' for more options."
-  exit 1
+  stop 1
 }
 
 parse_arguments() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -a|--all)
-        # install all applications
-        shift
-        ;;
       -h|--help)
         show_help
-        exit 0
+        stop 0
         ;;
       -f|--force)
         FORCE=1
@@ -72,17 +68,15 @@ parse_arguments() {
       -V|--version)
         echo "ZHub Version: $VERSION"
         echo "Usage: $(basename "$0") [OPTION]"
-        exit 0
+        stop 0
         ;;
-      -p|--port)
-        if [[ -n "$2" && ! "$2" =~ ^- ]]; then
-          PORT=$2
-          DB_PORT=$((PORT + 1))
-          shift 2
-        else
-          echo "Error: -p,--port requires a value."
-          exit 1
+      -p=*|--port=*)
+        PORT=${1#*=}
+        if ! [[ $PORT =~ ^[0-9]+$ ]]; then
+          stop 1 "Error: Invalid port value '$PORT'. Port must be a number."
         fi
+        DB_PORT=$((PORT + 1))
+        shift
         ;;
       -*)
         show_arg_error "$1"

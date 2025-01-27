@@ -109,26 +109,25 @@ jobs:
       - name: Package the repository
         run: |
           mkdir -p build
-          tar -czvf build/zhub-latest.tar.gz --exclude='.git*' .
-          ls -al
-          ls -al build
+          # Copy all files into the build directory
+          cp -r . build/
+          tar -czvf zhub-latest.tar.gz --exclude='.git*' -C build .
           if [ "${{ github.event.inputs.version }}" ]; then
-            cp build/zhub-latest.tar.gz build/zhub.tar.gz
+            cp zhub-latest.tar.gz zhub.tar.gz
           fi
           
       # Upload the artifact (this happens every time the workflow runs)
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: zhub-latest
-          path: build/zhub-latest.tar.gz
+          path: zhub-latest.tar.gz
 
       # If the version was provided, create a GitHub release
       - name: Create GitHub release (if version is provided)
         if: ${{ github.event.inputs.version != '' }}
         uses: softprops/action-gh-release@v2
         with:
-          files: build/zhub.tar.gz
+          files: zhub.tar.gz
           tag_name: "v${{ env.VERSION }}"
           body: |
             # Changes:

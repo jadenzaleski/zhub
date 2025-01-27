@@ -22,7 +22,7 @@ This will download the latest version of zhub and extract it to a folder named `
 ...
 
 ## Latest Passing Build
-
+curl -L -o zhub-latest.tar.gz https://github.com/your-username/your-repo-name/releases/download/latest/zhub-latest.tar.gz
 # Workflow
 
 ```mermaid

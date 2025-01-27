@@ -16,7 +16,7 @@
 source ./env.sh
 
 # List of commands to check
-commands=("wget" "npm" "git" "tar" "gzip" "touch" "yq")
+commands=("wget" "curl" "npm" "git" "tar" "gzip" "touch" "yq" "jq")
 # Array to store missing commands
 missing_commands=()
 

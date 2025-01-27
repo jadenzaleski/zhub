@@ -192,6 +192,7 @@ initialize_mysql() {
   tar -xJf "$DB_DIR/mysql.tar.gz" --strip-components=1 -C "$DB_DIR" || stop 1 "Error: Extraction of MySQL tar file failed."
   rm -rf "$DB_DIR/mysql.tar.gz" > /dev/null 2>&1
 
+  print "Creating my.cnf..."
   cat > "$DB_DIR/my.cnf" <<EOF
 [mysqld]
 datadir=$DB_DIR/data

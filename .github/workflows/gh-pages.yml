@@ -18,11 +18,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Download artifacts from the CD workflow
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
+      # Download all artifacts from the CD workflow
+      - name: Download all artifacts
+        id: download-artifact
+        uses: dawidd6/action-download-artifact@v8
         with:
-          path: ./artifacts # Destination folder for downloaded artifacts
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: CD.yml
+          workflow_conclusion: success
+          path: ./artifacts
 
       # Setup Git for deployment
       - name: Set up Git

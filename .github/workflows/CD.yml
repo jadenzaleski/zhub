@@ -108,12 +108,12 @@ jobs:
       # Create a tar.gz package
       - name: Package the repository
         run: |
-          mkdir -p build
-          # Copy all files into the build directory
-          cp -r . build/
-          tar -czvf zhub-latest.tar.gz --exclude='.git*' -C build .
+          ls -al
+          mkdir -p ../build
+          cp -r . ../build/
+          tar -czvf ../zhub-latest.tar.gz --exclude='.git*' -C ../build .
           if [ "${{ github.event.inputs.version }}" ]; then
-            cp zhub-latest.tar.gz zhub.tar.gz
+            cp ../zhub-latest.tar.gz ../zhub.tar.gz
           fi
           
       # Upload the artifact (this happens every time the workflow runs)

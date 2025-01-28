@@ -147,18 +147,18 @@ jobs:
         run: |
           cp -r ./artifacts ../artifacts
           rm -rf artifacts
-          
+
           # Remove existing symbolic links if they exist
           rm -f ./downloads/latest/build
           if [ "${{ github.event.inputs.version }}" ]; then
             rm -f ./downloads/latest/release
           fi
-          
+
           # Fetch the existing gh-pages branch
           git fetch --depth=1 origin gh-pages
           git checkout gh-pages
 
-          mkdir -p downloads
+          mkdir -p downloads/latest
 
           # Copy artifacts into the downloads folder
           cp ../artifacts/* ./downloads/

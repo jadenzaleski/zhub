@@ -6,7 +6,7 @@
     <title>Builds and Releases</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: Monospace;
             margin: 20px;
         }
         h1 {
@@ -15,10 +15,10 @@
         .container {
             display: flex;
             justify-content: space-around;
+            margin-top: 10px;
         }
         .links {
-            margin-top: 20px;
-            width: 45%;
+            
         }
         .links a {
             display: block;
@@ -29,18 +29,31 @@
         .links a:hover {
             text-decoration: underline;
         }
+        img {
+          display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 40%;
+        }
+        ul li:first-child {
+          font-weight: bold;
+        }
     </style>
 </head>
 <body>
-    <h1>Builds and Releases</h1>
+    <img src="https://github.com/jadenzaleski/zhub/blob/8efab1c13b6372314f881544eae9193484299732/logo.png?raw=true">
     <div class="container">
-        <div class="links">
-            <h2>Builds</h2>
-            <!-- CD BUILDS HERE -->
+    	<div class="links">
+            <h2>Releases</h2>
+            <ul>
+            <!-- CD RELEASES HERE -->
+            </ul>
         </div>
         <div class="links">
-            <h2>Releases</h2>
-            <!-- CD RELEASES HERE -->
+            <h2>Builds</h2>
+            <ul>
+            <!-- CD BUILDS HERE -->
+            </ul>
         </div>
     </div>
 </body>

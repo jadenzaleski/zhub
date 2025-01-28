@@ -147,15 +147,27 @@ jobs:
         run: |
           cp -r ./artifacts ../artifacts
           rm -rf artifacts
+          
+          # Remove existing symbolic links if they exist
+          rm -f ./downloads/latest/build
+          if [ "${{ github.event.inputs.version }}" ]; then
+            rm -f ./downloads/latest/release
+          fi
+          
           # Fetch the existing gh-pages branch
           git fetch --depth=1 origin gh-pages
           git checkout gh-pages
 
-          # Create or clean the downloads folder
           mkdir -p downloads
 
           # Copy artifacts into the downloads folder
           cp ../artifacts/* ./downloads/
+
+          # Create symbolic links for the latest release and build
+          ln -sf ../zhub-build-${{ github.run_number }}.tar.gz ./downloads/latest/build
+          if [ "${{ github.event.inputs.version }}" ]; then
+            ln -sf ../zhub-release-${{ github.event.inputs.version }}.tar.gz ./downloads/latest/release
+          fi
 
           # Commit and push changes
           git add .

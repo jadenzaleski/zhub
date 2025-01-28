@@ -1,10 +1,10 @@
 name: Deploy to GitHub Pages
 
 on:
-  workflow_run:
-    workflows: ["CD"]
-    types:
-      - completed
+#  workflow_run:
+#    workflows: ["CD"]
+#    types:
+#      - completed
 
   workflow_dispatch:
 

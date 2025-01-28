@@ -143,4 +143,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Deploy to GitHub Pages
+        run: |
+          # Fetch the existing gh-pages branch
+          git fetch --depth=1 origin gh-pages
+          git checkout gh-pages
+
+          # Create or clean the downloads folder
+          mkdir -p downloads
+
+          # Copy artifacts into the downloads folder
+          cp ./artifacts/* ./downloads/
+
+          # Commit and push changes
+          git add .
+          git commit -m "Deploy artifacts to downloads folder [skip ci]" || echo "No changes to commit"
+          git push origin gh-pages
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

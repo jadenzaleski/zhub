@@ -110,32 +110,32 @@ jobs:
         run: |
           ls -al
           mkdir -p artifacts
-          tar -czvf artifacts/zhub-latest.tar.gz --exclude='artifacts' --exclude='.git*' -C . .
+          tar -czvf artifacts/zhub-build-${{ github.run_number }}.tar.gz --exclude='artifacts' --exclude='.git*' -C . .
           if [ "${{ github.event.inputs.version }}" ]; then
-            cp artifacts/zhub-latest.tar.gz artifacts/zhub.tar.gz
+            cp artifacts/zhub-build-${{ github.run_number }}.tar.gz artifacts/zhub-release-${{ github.event.inputs.version }}.tar.gz
           fi
           
       # Upload the artifact (this happens every time the workflow runs)
       - name: Upload zhub-latest artifact
         uses: actions/upload-artifact@v4
         with:
-          name: zhub-latest.tar.gz
-          path: artifacts/zhub-latest.tar.gz
+          name: zhub-build-${{ github.run_number }}.tar.gz
+          path: artifacts/zhub-build-${{ github.run_number }}.tar.gz
 
       # Upload release artifact (only if version is provided)
       - name: Upload zhub artifact
         if: ${{ github.event.inputs.version != '' }}
         uses: actions/upload-artifact@v4
         with:
-          name: zhub.tar.gz
-          path: artifacts/zhub.tar.gz
+          name: zhub-release-${{ github.event.inputs.version }}.tar.gz
+          path: artifacts/zhub-release-${{ github.event.inputs.version }}.tar.gz
 
       # If the version was provided, create a GitHub release
       - name: Create GitHub release (if version is provided)
         if: ${{ github.event.inputs.version != '' }}
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/zhub.tar.gz
+          files: artifacts/zhub-release-${{ github.event.inputs.version }}.tar.gz
           tag_name: "v${{ env.VERSION }}"
           body: |
             # Changes:
@@ -145,7 +145,7 @@ jobs:
 
       - name: Deploy to GitHub Pages
         run: |
-          cp ./artifacts ../artifacts
+          cp -r ./artifacts ../artifacts
           rm -rf artifacts
           # Fetch the existing gh-pages branch
           git fetch --depth=1 origin gh-pages

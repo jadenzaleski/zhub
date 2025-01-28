@@ -169,25 +169,17 @@ jobs:
             ln -sf ../zhub-release-${{ github.event.inputs.version }}.tar.gz ./downloads/latest/release
           fi
 
-#           Generate the builds and releases links
-#          build_links=$(for f in downloads/*build*.tar.gz; do echo "<li><a href=\"$f\">$(basename "$f")</a></li>"; done)
-#          release_links=$(for f in downloads/*release*.tar.gz; do echo "<li><a href=\"$f\">$(basename "$f")</a></li>"; done)
-#
-#          # Replace the placeholders with the actual links
-#          sed -i '' "s|<!-- CD BUILDS HERE -->|$build_links|" index.html
-#          sed -i '' "s|<!-- CD RELEASES HERE -->|$release_links|" index.html
-          # Generate the builds and releases links
-               build_links=$(for f in downloads/*build*.tar.gz; do echo "<li><a href=\"$f\">$(basename "$f")</a></li>"; done | tr '\n' ' ')
-               release_links=$(for f in downloads/*release*.tar.gz; do echo "<li><a href=\"$f\">$(basename "$f")</a></li>"; done | tr '\n' ' ')
+          build_links=$(for f in downloads/*build*.tar.gz; do echo "<li><a href=\"$f\">$(basename "$f")</a></li>"; done | tr '\n' ' ')
+          release_links=$(for f in downloads/*release*.tar.gz; do echo "<li><a href=\"$f\">$(basename "$f")</a></li>"; done | tr '\n' ' ')
 
           # Replace the placeholders with the actual links
           # Escape special characters in the links
-               escaped_build_links=$(printf '%s' "$build_links" | sed 's/[&/\]/\\&/g')
-               escaped_release_links=$(printf '%s' "$release_links" | sed 's/[&/\]/\\&/g')
+          escaped_build_links=$(printf '%s' "$build_links" | sed 's/[&/\]/\\&/g')
+          escaped_release_links=$(printf '%s' "$release_links" | sed 's/[&/\]/\\&/g')
 
           # Update the file using sed
-               sed -i '' "s|<!-- CD BUILDS HERE -->|$escaped_build_links|" index.html
-               sed -i '' "s|<!-- CD RELEASES HERE -->|$escaped_release_links|" index.html
+          sed -i '' "s|<!-- CD BUILDS HERE -->|$escaped_build_links|" index.html
+          sed -i '' "s|<!-- CD RELEASES HERE -->|$escaped_release_links|" index.html
 
           # Commit and push changes
           git add .

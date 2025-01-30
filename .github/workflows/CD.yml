@@ -180,8 +180,8 @@ jobs:
           fi
           
           # Update the file using sed
-          sed -i '' 's|<!-- CD BUILDS HERE -->|'"$build_links"'|' index.html
-          sed -i '' 's|<!-- CD RELEASES HERE -->|'"$release_links"'|' index.html
+          sed -i '' 's/<!-- CD BUILDS HERE -->/'"$build_links"'/' index.html
+          sed -i '' 's/<!-- CD RELEASES HERE -->/'"$release_links"'/' index.html
 
           # Commit and push changes
           git add .

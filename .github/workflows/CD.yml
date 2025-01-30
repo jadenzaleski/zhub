@@ -174,12 +174,19 @@ jobs:
 
           # Replace the placeholders with the actual links
           # Escape special characters in the links
-          escaped_build_links=$(printf '%s' "$build_links" | sed 's/[&/\]/\\&/g')
-          escaped_release_links=$(printf '%s' "$release_links" | sed 's/[&/\]/\\&/g')
+          escaped_build_links=$(printf '%s' "$build_links")
+          escaped_release_links=$(printf '%s' "$release_links")
 
+          if [ -f index.html ]; then
+          echo "index.html found"
+          else
+            echo "index.html not found"
+            exit 1
+          fi
+          
           # Update the file using sed
-          sed -i '' "s|<!-- CD BUILDS HERE -->|$escaped_build_links|" index.html
-          sed -i '' "s|<!-- CD RELEASES HERE -->|$escaped_release_links|" index.html
+          sed -i '' 's|<!-- CD BUILDS HERE -->|$escaped_build_links|' index.html
+          sed -i '' 's|<!-- CD RELEASES HERE -->|$escaped_release_links|' index.html
 
           # Commit and push changes
           git add .

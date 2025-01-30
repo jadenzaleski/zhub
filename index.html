@@ -4,57 +4,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZHub | Builds and Releases</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+    <link rel="manifest" href="images/site.webmanifest">
     <style>
         body {
-            font-family: Monospace, serif;
+            font-family: Monospace, sans-serif;
             margin: 20px;
         }
-        h1 {
-            color: #333;
-        }
+
         .container {
             display: flex;
             justify-content: space-around;
             margin-top: 10px;
         }
-        .links {
 
+        .box {
+            display: flex;
+            flex-direction: column;
+            align-content: flex-start;
+            justify-content: start;
         }
+
+        .box h2, ul {
+            margin: 0;
+        }
+
+        h2 a, span {
+            font-size: 12px;
+            font-weight: normal;
+        }
+
+
+        .link {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .links {
+            font-size: 12px;
+        }
+
         .links a {
             display: block;
             margin: 5px 0;
             color: #007bff;
             text-decoration: none;
+
         }
-        .links a:hover {
+
+        .links a:hover, .link:hover {
             text-decoration: underline;
         }
+
         img {
-          display: block;
-          margin-left: auto;
-          margin-right: auto;
-          width: 20%;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            width: 400px;
         }
+
         ul li:first-child {
-          font-weight: bold;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <img src="https://github.com/jadenzaleski/zhub/blob/8efab1c13b6372314f881544eae9193484299732/logo.png?raw=true" alt="Logo">
-    <div class="container">
-    	<div class="links">
-            <h2>Releases</h2>
-            <ul>
+<img src="images/logo.png" alt="Logo">
+<div class="container">
+    <div class="box">
+        <h2>Releases<span> (<a class="link" href="downloads/latest/release">latest</a>)</span></h2>
+        <ul class="links">
             
-            </ul>
-        </div>
-        <div class="links">
-            <h2>Builds</h2>
-            <ul>
-            <li><a href="downloads/zhub-build-30.tar.gz">zhub-build-30.tar.gz</a></li> <li><a href="downloads/zhub-build-28.tar.gz">zhub-build-28.tar.gz</a></li> <li><a href="downloads/zhub-build-21.tar.gz">zhub-build-21.tar.gz</a></li> <li><a href="downloads/zhub-build-19.tar.gz">zhub-build-19.tar.gz</a></li> 
-            </ul>
-        </div>
+        </ul>
     </div>
+    <div class="box">
+        <h2>Builds<span> (<a class="link" href="downloads/latest/build">latest</a>)</span></h2>
+        <ul class="links">
+            <li><a href="downloads/zhub-build-31.tar.gz">zhub-build-31.tar.gz</a></li> <li><a href="downloads/zhub-build-30.tar.gz">zhub-build-30.tar.gz</a></li> <li><a href="downloads/zhub-build-28.tar.gz">zhub-build-28.tar.gz</a></li> <li><a href="downloads/zhub-build-21.tar.gz">zhub-build-21.tar.gz</a></li> <li><a href="downloads/zhub-build-19.tar.gz">zhub-build-19.tar.gz</a></li> 
+        </ul>
+    </div>
+</div>
 </body>
 </html>

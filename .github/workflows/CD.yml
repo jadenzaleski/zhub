@@ -17,9 +17,10 @@ permissions:
   contents: write
 
 jobs:
-  package_version_release:
+  package_version_release_deploy:
     name: Package, Version, and Release
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     if: ${{ github.event.workflow_run.conclusion == 'success' }} # Only run if CI was successful
 
     steps:
@@ -108,7 +109,6 @@ jobs:
       # Create a tar.gz package
       - name: Package the repository
         run: |
-          ls -al
           mkdir -p artifacts
           tar -czvf artifacts/zhub-build-${{ github.run_number }}.tar.gz --exclude='artifacts' --exclude='.git*' -C . .
           file artifacts/zhub-build-${{ github.run_number }}.tar.gz
@@ -117,14 +117,14 @@ jobs:
           fi
           
       # Upload the artifact (this happens every time the workflow runs)
-      - name: Upload zhub-latest artifact
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: zhub-build-${{ github.run_number }}.tar.gz
           path: artifacts/zhub-build-${{ github.run_number }}.tar.gz
 
       # Upload release artifact (only if version is provided)
-      - name: Upload zhub artifact
+      - name: Upload release artifact
         if: ${{ github.event.inputs.version != '' }}
         uses: actions/upload-artifact@v4
         with:
@@ -184,6 +184,15 @@ jobs:
           ln -sf ../zhub-build-${{ github.run_number }}.tar.gz ./downloads/latest/build
           if [ "${{ github.event.inputs.version }}" ]; then
             ln -sf ../zhub-release-${{ github.event.inputs.version }}.tar.gz ./downloads/latest/release
+          fi
+          
+          # Ensure there are only a maximum of 100 tar build files
+          build_files=( $(ls -t downloads/*build*.tar.gz) )
+          if [ ${#build_files[@]} -gt 100 ]; then
+            files_to_remove=( ${build_files[@]:100} )
+            for file in "${files_to_remove[@]}"; do
+              rm -f "$file"
+            done
           fi
 
           build_links=$(for f in $(ls -t downloads/*build*.tar.gz); do echo "<li><a href=\"$f\">$(basename "$f")</a></li>"; done | tr '\n' ' ')

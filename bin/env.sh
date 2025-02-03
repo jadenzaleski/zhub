@@ -20,6 +20,9 @@ export PATH=$PATH:$BIN_DIR
 VERSION="$(cat "$ROOT_DIR"/VERSION)"
 export VERSION
 
+BUILD="$(cat "$ROOT_DIR"/BUILD)"
+export BUILD
+
 OS=$(uname -s)
 export OS
 
@@ -64,21 +67,12 @@ export ON_BLACK ON_RED ON_GREEN ON_YELLOW ON_BLUE ON_PURPLE ON_CYAN ON_WHITE
 #log "$ON_RED  $ON_GREEN  $ON_YELLOW  $ON_BLUE  $ON_PURPLE  $ON_CYAN  $ON_WHITE  $ON_BLACK  $COLOR_OFF"
 # --- END OF COLORS ---
 
-#Github variables
-REPO_OWNER="jadenzaleski"
-export REPO_OWNER
-
-REPO_NAME="zhub"
-export REPO_NAME
-
-CD_WORKFLOW="CD.yml"
-export CD_WORKFLOW
-
-
 # Redefine printf to include the prefix with filename and date
 log() {
-  local filename="$(basename "$0")"
-  local datetime=$(date "+%H:%M:%S")
+  local filename
+  filename="$(basename "$0")"
+  local datetime;
+  datetime=$(date "+%H:%M:%S")
   prefix="$filename | $datetime |"
 
   printf "$prefix %b\n" "$*"
@@ -126,6 +120,9 @@ start_spinner() {
   SPINNER_PID=$!
   printf "\033[?25l" # Hide the cursor
 }
+
+# Trap SIGINT (Ctrl+C) to clean up the spinner
+trap 'stop_spinner; exit 1' SIGINT
 
 stop_spinner() {
   printf "\033[2K%s" "$1"

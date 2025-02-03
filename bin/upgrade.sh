@@ -80,35 +80,83 @@ stop() {
   exit "$1"
 }
 
-check_new_build() {
-  curl -s "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${CD_WORKFLOW}/runs?status=success" -o cd_workflow_runs.json
-  ARTIFACT_ID=$(jq -r '.workflow_runs[0].id' cd_workflow_runs.json)
 
-  curl -s "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/runs/${ARTIFACT_ID}/artifacts" -o build_artifacts.json
-  ARTIFACT_URL=$(jq -r '.artifacts[0].archive_download_url' build_artifacts.json)
+check_for_update() {
+  cd "$ROOT_DIR"/upgrade || stop 1 "Error: Unable to navigate to upgrade directory."
+  if [[ $UPGRADE_BUILD -eq 1 ]]; then
+    curl -L "https://jadenzaleski.github.io/zhub/downloads/latest/build" -o "zhub-latest.tar.gz" > /dev/null 2>&1
+  else
+    curl -L "https://jadenzaleski.github.io/zhub/downloads/latest/release" -o "zhub-latest.tar.gz" > /dev/null 2>&1
+  fi
 
-  curl -L -o "zhub-latest.tar.gz" "${ARTIFACT_URL}"
+  if [[ -f "zhub-latest.tar.gz" ]]; then
+    tar -xzf "zhub-latest.tar.gz"
+    rm -f "zhub-latest.tar.gz"
+  else
+    stop 1 "Error: Unable to download the latest build/release."
+  fi
+
+  # Check if a new build or release is available
+  if [[ -f "$ROOT_DIR"/upgrade/BUILD && -f "$ROOT_DIR"/upgrade/VERSION ]]; then
+    if [[ $UPGRADE_BUILD -eq 1 ]]; then
+      if [[ $(cat "$ROOT_DIR"/upgrade/BUILD) -gt $BUILD ]]; then
+        NEW_BUILD_NUMBER=$(cat "$ROOT_DIR"/upgrade/BUILD)
+        NEW_VERSION_NUMBER=$(cat "$ROOT_DIR"/upgrade/VERSION)
+        return 0 # New build available
+      else
+        return 1 # No new build available
+      fi
+    else
+      if [[ $(cat "$ROOT_DIR"/upgrade/VERSION) -gt $VERSION ]]; then
+        NEW_BUILD_NUMBER=$(cat "$ROOT_DIR"/upgrade/BUILD)
+        NEW_VERSION_NUMBER=$(cat "$ROOT_DIR"/upgrade/VERSION)
+        return 0 # New version available
+      else
+        return 1 # No new version available
+      fi
+    fi
+  else
+    stop 1 "Error: Unable to check the build version."
+  fi
+
+
 }
 
-check_new_release() {
-  whoami > /dev/null 2>&1
+confirm_update() {
+  if [[ $FORCE -eq 0 ]]; then
+    stop_spinner "New version/build available!"
+    echo "Version: $VERSION → $NEW_VERSION_NUMBER"
+    echo "Build: $BUILD → $NEW_BUILD_NUMBER"
+    read -r -p "Do you want to upgrade to $NEW_VERSION_NUMBER ($NEW_BUILD_NUMBER)? [yes/no] " response
+    if [[ $response =~ ^([yY][eE][sS]|[yY]|)$ ]]; then
+      [ $VERBOSE -eq 0 ] && start_spinner
+      print "Updating to $NEW_VERSION_NUMBER ($NEW_BUILD_NUMBER)..."
+    else
+      stop 0 "Update cancelled."
+    fi
+  else
+    print "Updating to $NEW_VERSION_NUMBER ($NEW_BUILD_NUMBER)..."
+  fi
 }
 
 # Script process starts here:
 parse_arguments "$@"
-./check_dependencies.sh
 
+[ $VERBOSE -eq 0 ] && start_spinner
+
+print "Checking dependencies..."
+./check_dependencies.sh > /dev/null 2>&1
+
+print "Creating upgrade folder..."
 rm -rf "$ROOT_DIR"/upgrade
-
-mkdir "$ROOT_DIR"/upgrade >/dev/null 2>&1
+mkdir "$ROOT_DIR"/upgrade > /dev/null 2>&1
 cd "$ROOT_DIR"/upgrade || stop 1 "Error: Unable to create upgrade directory."
 
-
-
-if [[ $UPGRADE_BUILD -eq 1 ]]; then
-  check_new_build
+print "Checking for a newer version..."
+if check_for_update; then
+  confirm_update
 else
-  check_new_release
+  print "No new version available."
 fi
 
-exit 0;
+stop 0 "Upgrade complete!"

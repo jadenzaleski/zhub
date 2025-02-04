@@ -1,3 +1,4 @@
+<!--suppress HtmlDeprecatedAttribute -->
 <p align="center"><img src="https://jadenzaleski.github.io/zhub/images/logo.png" alt="Image" width="200" height="200"></p>
 <p align="center">
     <img src="https://img.shields.io/github/actions/workflow/status/jadenzaleski/zhub/CI.yml?style=flat-square&logo=GitHub&label=CI" alt="GitHub Actions Workflow Status">

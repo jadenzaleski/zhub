@@ -97,7 +97,11 @@ print() {
 }
 
 stop() {
-  [ $VERBOSE -eq 0 ] && stop_spinner "$2"
+  if [[ $VERBOSE -eq 0 ]]; then
+    stop_spinner "$2"
+  else
+    log "${@:2}" # all but the first one
+  fi
   exit "$1"
 }
 

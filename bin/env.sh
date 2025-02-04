@@ -29,6 +29,9 @@ export OS
 DB_DIR="$ROOT_DIR/db"
 export DB_DIR
 
+BACKUPS_DIR="$ROOT_DIR/backups"
+export BACKUPS_DIR
+
 # --- COLORS ---
 # Reset
 COLOR_OFF='\033[0m'       # Text Reset

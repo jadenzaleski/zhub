@@ -21,7 +21,8 @@ jobs:
     name: Package, Version, and Release
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: ${{ github.event.workflow_run.conclusion == 'success' }} # Only run if CI was successful
+    # Only run if CI was successful or manual dispatch
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
 
     steps:
       # Checkout the repository

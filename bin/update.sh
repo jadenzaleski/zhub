@@ -130,8 +130,6 @@ check_for_update() {
   else
     stop 1 "Error: Unable to check the build/release version."
   fi
-
-
 }
 
 confirm_update() {

@@ -57,7 +57,6 @@ jobs:
               git add VERSION
               git commit -m "Update VERSION file to ${VERSION} [skip ci]"
               git push origin HEAD:refs/heads/master
-              git tag -d v$VERSION
               git tag v$VERSION
               git push origin v$VERSION --force
             else

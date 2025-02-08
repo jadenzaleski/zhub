@@ -14,6 +14,7 @@ source env.sh
 VERBOSE=0
 FORCE=0
 UPDATE_BUILD=0
+CALLED_BY_UPDATER=0
 
 show_help() {
   cat << EOF
@@ -57,6 +58,10 @@ parse_arguments() {
         VERBOSE=1
         shift
         ;;
+      -u|--updater)
+        CALLED_BY_UPDATER=1
+        shift
+        ;;
       -*)
         show_arg_error "$1"
         ;;
@@ -88,9 +93,9 @@ stop() {
 check_for_update() {
   cd "$ROOT_DIR"/update || stop 1 "Error: Unable to navigate to update directory."
   if [[ $UPDATE_BUILD -eq 1 ]]; then
-    curl -L "https://jadenzaleski.github.io/zhub/downloads/latest/build" -o "zhub-latest.tar.gz" > /dev/null 2>&1
+    curl -L "https://jadenzaleski.github.io/zhub/downloads/latest/build.tar.gz" -o "zhub-latest.tar.gz" > /dev/null 2>&1
   else
-    curl -L "https://jadenzaleski.github.io/zhub/downloads/latest/release" -o "zhub-latest.tar.gz" > /dev/null 2>&1
+    curl -L "https://jadenzaleski.github.io/zhub/downloads/latest/release.tar.gz" -o "zhub-latest.tar.gz" > /dev/null 2>&1
   fi
 
   if [[ -f "zhub-latest.tar.gz" ]]; then
@@ -167,8 +172,11 @@ backup() {
   print "Backup created."
 }
 
-update() {
-  backup
+call_update() {
+  # After we have made the backup, we can now update the files
+  print "Calling new update script..."
+  [ $VERBOSE -eq 0 ] && stop_spinner
+  exec cp update/bin/update.sh ./update.sh && chmod +x ./update.sh && ./update.sh "$@"
 }
 
 # Script process starts here:
@@ -191,8 +199,16 @@ else
   stop 0 "No new version available. On version: $VERSION ($BUILD)"
 fi
 
-print "Updating..."
-update
+print "Creating backup..."
+backup
 
+print "Updating..."
+if [[ $CALLED_BY_UPDATER -eq 0 ]]; then
+  call_update "$@" -u
+fi
+
+# Now that we are on the newest version of the script. do all the normal updates.
+# we may just call install.sh here.
+print "JADEN ZALESKI"
 
 stop 0 "Update complete!"

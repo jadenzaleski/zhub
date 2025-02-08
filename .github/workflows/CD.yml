@@ -183,9 +183,9 @@ jobs:
           cp ../artifacts/* ./downloads/
 
           # Create symbolic links for the latest release and build
-          ln -sf ../zhub-build-${{ github.run_number }}.tar.gz ./downloads/latest/build
+          ln -sf ../zhub-build-${{ github.run_number }}.tar.gz ./downloads/latest/build.tar.gz
           if [ "${{ github.event.inputs.version }}" ]; then
-            ln -sf ../zhub-release-${{ github.event.inputs.version }}.tar.gz ./downloads/latest/release
+            ln -sf ../zhub-release-${{ github.event.inputs.version }}.tar.gz ./downloads/latest/release.tar.gz
           fi
           
           # Ensure there are only a maximum of 100 tar build files

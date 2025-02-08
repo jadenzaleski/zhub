@@ -43,7 +43,7 @@ config:
 ---
 flowchart
 	A@{ shape: 'stadium', label: 'Push to master' } --- s1
-	subgraph s1['CI']
+	subgraph s1[CI]
 		n2
 		n4@{ shape: 'rounded', label: 'Install ZHub' }
 	end
@@ -53,7 +53,7 @@ flowchart
 	s1
 
 	B@{ shape: 'stadium', label: 'Manual dispatch' } --- n1
-	subgraph n1['CD']
+	subgraph n1[CD]
 		n6
 		n5@{ shape: 'rounded', label: 'Package' }
 	n5 --- n6@{ shape: 'rounded', label: 'Add artifacts' }

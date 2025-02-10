@@ -15,6 +15,7 @@ VERBOSE=0
 FORCE=0
 UPDATE_BUILD=0
 CALLED_BY_UPDATER=0
+UPDATE_DIR="$ROOT_DIR"/update
 
 show_help() {
   cat << EOF
@@ -27,6 +28,7 @@ Options:
   -h,  --help                      Print this help
   -f,  --force                     Accept all warnings
   -v,  --verbose                   Enable verbose output
+  -u,  --updater                   Do not use! Indicate that this script was called by the updater.
 Example:
   $(basename "$0") -v -f
 EOF
@@ -91,7 +93,7 @@ stop() {
 
 
 check_for_update() {
-  cd "$ROOT_DIR"/update || stop 1 "Error: Unable to navigate to update directory."
+  cd "$UPDATE_DIR" || stop 1 "Error: Unable to navigate to update directory."
   if [[ $UPDATE_BUILD -eq 1 ]]; then
     curl -L "https://jadenzaleski.github.io/zhub/downloads/latest/build.tar.gz" -o "zhub-latest.tar.gz" > /dev/null 2>&1
   else
@@ -108,25 +110,25 @@ check_for_update() {
   fi
 
   # Check if a new build or release is available
-  if [[ -f "$ROOT_DIR"/update/BUILD && -f "$ROOT_DIR"/update/VERSION  ]]; then
+  if [[ -f "$UPDATE_DIR"/BUILD && -f "$UPDATE_DIR"/VERSION  ]]; then
     if [[ $FORCE -eq 1 ]]; then
-      NEW_BUILD_NUMBER=$(cat "$ROOT_DIR"/update/BUILD)
-      NEW_VERSION_NUMBER=$(cat "$ROOT_DIR"/update/VERSION)
+      NEW_BUILD_NUMBER=$(cat "$UPDATE_DIR"/BUILD)
+      NEW_VERSION_NUMBER=$(cat "$UPDATE_DIR"/VERSION)
       return 0 # update available
     fi
 
     if [[ $UPDATE_BUILD -eq 1 ]]; then
-      if [[ $(cat "$ROOT_DIR"/update/BUILD) -gt $BUILD ]]; then
-        NEW_BUILD_NUMBER=$(cat "$ROOT_DIR"/update/BUILD)
-        NEW_VERSION_NUMBER=$(cat "$ROOT_DIR"/update/VERSION)
+      if [[ $(cat "$UPDATE_DIR"/BUILD) -gt $BUILD ]]; then
+        NEW_BUILD_NUMBER=$(cat "$UPDATE_DIR"/BUILD)
+        NEW_VERSION_NUMBER=$(cat "$UPDATE_DIR"/VERSION)
         return 0 # New build available
       else
         return 1 # No new build available
       fi
     else
-      if [[ $(cat "$ROOT_DIR"/update/VERSION) -gt $VERSION ]]; then
-        NEW_BUILD_NUMBER=$(cat "$ROOT_DIR"/update/BUILD)
-        NEW_VERSION_NUMBER=$(cat "$ROOT_DIR"/update/VERSION)
+      if [[ $(cat "$UPDATE_DIR"/VERSION) -gt $VERSION ]]; then
+        NEW_BUILD_NUMBER=$(cat "$UPDATE_DIR"/BUILD)
+        NEW_VERSION_NUMBER=$(cat "$UPDATE_DIR"/VERSION)
         return 0 # New version available
       else
         return 1 # No new version available
@@ -155,17 +157,16 @@ confirm_update() {
 }
 
 backup() {
-  print "Creating backup..."
   mkdir -p "$BACKUPS_DIR"
   local date
   date=$(date +'%Y%m%d_%H%M%S')
 
   #rsync -a --exclude="$BACKUPS_DIR" --exclude=".git*" --exclude=".idea" "$ROOT_DIR"/ "$BACKUP_DIR"
   if [[ $VERBOSE -eq 1 ]]; then
-    tar -cvzf "$BACKUPS_DIR/bak_$date.tar.gz" --exclude="$BACKUPS_DIR" --exclude=".git*" --exclude=".idea" --exclude="db" -C "$ROOT_DIR" .
+    tar -cvzf "$BACKUPS_DIR/bak_$date.tar.gz" --exclude="backups" --exclude="update" --exclude=".git*" --exclude=".idea" --exclude="db" -C "$ROOT_DIR" .
     tar -cvzf "$BACKUPS_DIR/db_bak_$date.tar.gz" -C "$DB_DIR/" data
   else
-    tar -czf "$BACKUPS_DIR/bak_$date.tar.gz" --exclude="$BACKUPS_DIR" --exclude=".git*" --exclude=".idea" --exclude="db" -C "$ROOT_DIR" . > /dev/null 2>&1
+    tar -czf "$BACKUPS_DIR/bak_$date.tar.gz" --exclude="backups" --exclude="update" --exclude=".git*" --exclude=".idea" --exclude="db" -C "$ROOT_DIR" . > /dev/null 2>&1
     tar -czf "$BACKUPS_DIR/db_bak_$date.tar.gz" -C "$DB_DIR/" data > /dev/null 2>&1
   fi
 
@@ -176,7 +177,10 @@ call_update() {
   # After we have made the backup, we can now update the files
   print "Calling new update script..."
   [ $VERBOSE -eq 0 ] && stop_spinner
-  exec cp update/bin/update.sh ./update.sh && chmod +x ./update.sh && ./update.sh "$@"
+  # Copy the new update script to the update directory
+  # We will call the new update script with the same arguments as this script AND -u.
+  # Which will indicate that it was called by the updater and this function will NOT be run again during the update process.
+  exec cp -a "$UPDATE_DIR"/bin/* "$BIN_DIR"/ && chmod +x "$BIN_DIR"/* && "$BIN_DIR"/update.sh "$@"
 }
 
 # Script process starts here:
@@ -184,31 +188,35 @@ parse_arguments "$@"
 
 [ $VERBOSE -eq 0 ] && start_spinner
 
-print "Checking dependencies..."
-./check_dependencies.sh > /dev/null 2>&1
-
-print "Creating update folder..."
-rm -rf "$ROOT_DIR"/update
-mkdir "$ROOT_DIR"/update > /dev/null 2>&1
-cd "$ROOT_DIR"/update || stop 1 "Error: Unable to create update directory."
-
-print "Checking for a newer version..."
-if check_for_update; then
-  confirm_update
-else
-  stop 0 "No new version available. On version: $VERSION ($BUILD)"
-fi
-
-print "Creating backup..."
-backup
-
-print "Updating..."
+# Now we first need to update this script to the newest version.
+# We will call the update script with the -u flag to indicate that it was called by the updater.
 if [[ $CALLED_BY_UPDATER -eq 0 ]]; then
+  print "Checking dependencies..."
+  ./check_dependencies.sh > /dev/null 2>&1
+
+  print "Creating update folder..."
+  rm -rf "$UPDATE_DIR"
+  mkdir "$UPDATE_DIR" > /dev/null 2>&1
+  cd "$UPDATE_DIR" || stop 1 "Error: Unable to create update directory."
+
+  print "Checking for a newer version..."
+  if check_for_update; then
+    confirm_update
+  else
+    stop 0 "No new version available. On version: $VERSION ($BUILD)"
+  fi
+
+  print "Creating backup..."
+  backup
+
+  print "Updating..."
   call_update "$@" -u
+
+else
+  # We are now in the newest version of the script.
+  # We can now do all the normal updates.
+  # We may just call install.sh here.
+  print "We are now in the newest version of the script."
+
+  stop 0 "Update complete!"
 fi
-
-# Now that we are on the newest version of the script. do all the normal updates.
-# we may just call install.sh here.
-print "JADEN ZALESKI"
-
-stop 0 "Update complete!"

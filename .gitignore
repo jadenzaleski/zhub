@@ -13,10 +13,9 @@
 .DS_Store
 # yq
 /bin/yq
-# config
-config.yaml
-/db
 
 /update
 
 /backups
+
+node_modules

@@ -1,0 +1,20 @@
+/*
+ * File: user-defined-themes.scss
+ * Created: 2/12/2025
+ * Author: Jaden Zaleski
+ *
+ * Description:
+ * Main CSS extensions for the main page of the ui.
+ * All colors as well as other variable values (such as borders, border-radius, shadows) are specified as CSS variables.
+ * This makes theming the application easy, as you only need to change a given color or value in one place. You can find
+ * all variables in color-palette.scss and the themes which make use of these color variables are specified in color-themes.scss
+ */
+
+.site-logo {
+    max-height: 64px; width: 64px;
+}
+
+html[data-theme='jaden'] {
+  --primary: #f58233;
+  --background: #0b1021;
+}

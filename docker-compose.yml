@@ -12,5 +12,7 @@ services:
     ports:
       - "8080:8080"  # Expose Dashy UI on port 8080
     volumes:
-      - ./ui/config.yaml:/user-data/conf.yml  # Mount custom configuration file (optional)
+      - ./ui/config.yaml:/app/user-data/conf.yml
+      - ./ui/styles/user-defined-themes.scss:/app/src/styles/user-defined-themes.scss
+      - ./assets:/app/user-data/assets
     restart: unless-stopped
